@@ -39,7 +39,7 @@ CLI plugins run in a user-authenticated Twilio CLI context. Future commands
 should make account reads and writes explicit and should avoid printing or
 persisting sensitive profile data.
 
-## What We Will Not Merge For Now
+## What We Will Not Merge (For Now)
 
 - Hidden account mutations
 - Credential capture or logging
