@@ -1,5 +1,8 @@
 *-debug.log
 *-error.log
+*.log
+/.env
+/.env.*
 /.nyc_output
 /dist
 /tmp

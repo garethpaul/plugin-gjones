@@ -29,15 +29,25 @@ Helpful reports include:
 - Review found external API integrations or credential-adjacent configuration; changes in those areas should receive security-focused review before merge.
 - Review found network clients, sockets, web APIs, or service endpoints; changes in those areas should receive security-focused review before merge.
 - Review found file, document, data, or media parsing flows; changes in those areas should receive security-focused review before merge.
+- The current scaffold command is credential-free and performs no account
+  mutations. Treat any future Twilio account read/write as security-sensitive
+  and document the side effect before merge.
 - Dependency manifests detected: package.json. Dependency updates should preserve lockfiles when present and avoid introducing packages without a clear maintenance reason.
 
 ## Service and API Notes
 
 For web services, APIs, sockets, or scraping workflows, prioritize reports involving authentication bypass, authorization errors, injection, server-side request forgery, unsafe deserialization, credential leakage, data exposure, or denial-of-service conditions. Use test accounts and minimal proof-of-concept traffic only.
 
+For Twilio CLI plugin behavior, also report commands that capture, log, print,
+or persist Twilio credentials, profile data, Account SIDs, Auth Tokens, phone
+numbers, or customer data unexpectedly.
+
 ## Dependency and Supply Chain Security
 
 Dependency updates should come from trusted package managers and should keep lockfiles in sync when lockfiles exist. Do not commit credentials, private keys, tokens, generated secrets, or machine-local configuration. If a vulnerability depends on a compromised package, typosquatting risk, insecure transitive dependency, or unsafe build step, include the package name, affected version, and the path through which it is used.
+
+Run `npm run check` before changing command behavior, package scripts, CI, or
+credential-adjacent Twilio CLI behavior.
 
 ## Safe Research Guidelines
 

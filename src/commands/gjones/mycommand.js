@@ -1,12 +1,11 @@
-const { TwilioClientCommand } = require('@twilio/cli-core').baseCommands;
+const { Command } = require('@oclif/command');
 
-class myCommand extends TwilioClientCommand {
+class MyCommand extends Command {
   async run() {
-    console.log('Hello World Test!');
+    this.log('Hello World Test!');
   }
 }
 
-myCommand.description =
-  "This is my first command... and doesn't do anything special";
+MyCommand.description = 'Print a simple plugin scaffold message';
 
-module.exports = myCommand;
+module.exports = MyCommand;
