@@ -35,6 +35,11 @@ Contribution rules:
 
 ## Security And Responsible Use
 
+Canonical security policy and reporting:
+
+- [`SECURITY.md`](SECURITY.md)
+
+
 CLI plugins run in a user-authenticated Twilio CLI context. Future commands
 should make account reads and writes explicit and should avoid printing or
 persisting sensitive profile data.
