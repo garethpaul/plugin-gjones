@@ -13,6 +13,9 @@ Head over to the [twilio-cli documentation](https://www.twilio.com/docs/twilio-c
 
 # Usage
 
+<!-- README-OVERVIEW-IMAGE -->
+![Project overview](docs/readme-overview.svg)
+
 ```sh-session
 $ twilio --help gjones
 USAGE
