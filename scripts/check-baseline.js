@@ -19,7 +19,8 @@ const REQUIRED = [
   'package.json',
   PLAN,
   'scripts/check-baseline.js',
-  'src/commands/gjones/mycommand.js'
+  'src/commands/gjones/mycommand.js',
+  'tests/command-output.test.js'
 ];
 
 function read(relativePath) {
@@ -42,8 +43,11 @@ function main() {
   if (pkg.scripts.check !== 'node scripts/check-baseline.js') {
     failures.push('package.json must expose npm run check');
   }
-  if (pkg.scripts.test !== 'npm run check') {
-    failures.push('npm test must run the static baseline');
+  if (pkg.scripts.test !== 'npm run check && npm run test:command') {
+    failures.push('npm test must run the static baseline and command output test');
+  }
+  if (pkg.scripts['test:command'] !== 'node tests/command-output.test.js') {
+    failures.push('package.json must expose npm run test:command');
   }
   if (pkg.scripts.posttest) {
     failures.push('posttest should not run npm audit without a committed lockfile');
@@ -54,7 +58,8 @@ function main() {
 
   for (const jsFile of [
     'scripts/check-baseline.js',
-    'src/commands/gjones/mycommand.js'
+    'src/commands/gjones/mycommand.js',
+    'tests/command-output.test.js'
   ]) {
     try {
       // eslint-disable-next-line no-new-func
@@ -107,7 +112,9 @@ function main() {
     'credential-free',
     'no account mutations',
     'Twilio credentials',
-    'static baseline'
+    'static baseline',
+    'Hello World Test!',
+    'test:command'
   ]) {
     if (!docs.toLowerCase().includes(phrase.toLowerCase())) {
       failures.push(`docs must mention ${phrase}`);
@@ -115,8 +122,8 @@ function main() {
   }
 
   const plan = read(PLAN);
-  if (!plan.includes('status: completed') || !plan.includes('npm run check')) {
-    failures.push('plan must record completed status and npm run check verification');
+  if (!plan.includes('status: completed') || !plan.includes('npm run check') || !plan.includes('npm run test:command')) {
+    failures.push('plan must record completed status and command verification');
   }
 
   const svg = read('docs/readme-overview.svg');

@@ -23,10 +23,12 @@ command.
 - Removed remote Codecov script download/execution from AppVeyor.
 - Updated the package bugs URL to this repository.
 - Documented the credential-free, no-account-mutation baseline.
+- Added a dependency-free command output check for the scaffold message.
 
 ## Verification
 
 - `npm run check`
 - `npm test`
+- `npm run test:command`
 - `node scripts/check-baseline.js`
 - `git diff --check`

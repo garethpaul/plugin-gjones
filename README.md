@@ -55,14 +55,15 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 - Run `npm run check` before changing command behavior or package metadata.
 - Use `./bin/run gjones:mycommand` after dependencies are installed to run the
-  scaffold command.
+  scaffold command. It prints `Hello World Test!`.
 
 Detected npm scripts:
 
 - `npm run postpack` - `rm -f oclif.manifest.json`
 - `npm run prepack` - `oclif-dev manifest && oclif-dev readme`
 - `npm run check` - `node scripts/check-baseline.js`
-- `npm run test` - `npm run check`
+- `npm run test` - `npm run check && npm run test:command`
+- `npm run test:command` - `node tests/command-output.test.js`
 - `npm run version` - `oclif-dev readme && git add README.md`
 
 ## Testing and Verification
@@ -70,6 +71,7 @@ Detected npm scripts:
 - `npm run check`
 - `npm test`
 - `node scripts/check-baseline.js`
+- `npm run test:command`
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 

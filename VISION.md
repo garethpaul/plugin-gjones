@@ -13,6 +13,8 @@ an example plugin or a maintained user-facing CLI extension.
 Current baseline: `npm run check` verifies the credential-free command,
 package metadata, CI guardrails, docs, and static baseline without requiring
 Twilio credentials or a live account.
+`npm run test:command` keeps the documented scaffold output aligned with the
+command implementation.
 
 The current focus is:
 
@@ -27,7 +29,6 @@ Priority:
 Next priorities:
 
 - Add a README note that defines the plugin purpose
-- Add a command test for the current output
 - Fix any stale package metadata or issue links
 - Document supported Node and Twilio CLI versions
 
