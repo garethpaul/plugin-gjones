@@ -45,3 +45,6 @@ persisting sensitive profile data.
 - Credential capture or logging
 - Broad command expansion before the plugin purpose is documented
 - Generated docs that do not match the command implementation
+
+This list is a roadmap guardrail, not a permanent rule.
+Strong user demand and strong technical rationale can change it.
