@@ -1,5 +1,8 @@
 # plugin-gjones
 
+<!-- README-OVERVIEW-IMAGE -->
+![Project overview](docs/readme-overview.svg)
+
 ## Overview
 
 `garethpaul/plugin-gjones` is a Node.js or JavaScript project. Simple Twilio Plugin 
@@ -81,4 +84,3 @@ Keep changes small and tied to the project that is already present in this repos
 Prior README summary:
 
 > @garethpaul/plugin-debugger ======================== Access and stream your Twilio debugger logs. <!-- toc --> * [Usage](#usage) * [Commands](#commands) <!-- tocstop --> Setup
-
