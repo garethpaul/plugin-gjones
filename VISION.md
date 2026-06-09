@@ -14,7 +14,7 @@ Current baseline: `npm run check` verifies the credential-free command,
 package metadata, CI guardrails, docs, and static baseline without requiring
 Twilio credentials or a live account.
 `npm run test:command` keeps the documented scaffold output aligned with the
-command implementation.
+command implementation by executing `run()` with a mocked oclif base class.
 
 The current focus is:
 
@@ -25,6 +25,7 @@ Priority:
 - Avoid adding side effects to the example command
 - Keep the current command credential-free and free of account mutations
 - Keep generated documentation aligned with command names
+- Keep command execution test coverage dependency-free
 
 Next priorities:
 

@@ -11,3 +11,5 @@
 - Added docs and checks that keep the sample free of account mutations and
   Twilio credential handling.
 - Added a dependency-free `npm run test:command` guard for the scaffold output.
+- Strengthened `npm run test:command` into a command execution test that calls
+  `run()` with a mocked oclif base class.

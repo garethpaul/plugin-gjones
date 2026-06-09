@@ -24,6 +24,7 @@ This README is based on the checked-in source, manifests, scripts, and repositor
 - `bin` - source or example code
 - `SECURITY.md` - security reporting and disclosure guidance
 - `src` - source or example code
+- `tests` - dependency-free command output checks
 - `VISION.md` - project direction and maintenance guardrails
 - `docs/plans/2026-06-08-plugin-gjones-baseline.md` - completed baseline plan
 - `scripts/check-baseline.js` - dependency-free static baseline checks
@@ -33,7 +34,7 @@ Additional scan context:
 - Source directories: bin, src
 - Dependency and build manifests: package.json
 - Entry points or build surfaces: package.json, Makefile
-- Test-looking files: no obvious test files detected
+- Test-looking files: tests/command-output.test.js
 
 ## Getting Started
 
@@ -74,6 +75,10 @@ Detected npm scripts:
 - `npm test`
 - `node scripts/check-baseline.js`
 - `npm run test:command`
+
+`npm run test:command` is a dependency-free command execution test. It evaluates
+`gjones:mycommand` with a mocked oclif `Command`, calls `run()`, and verifies the
+documented scaffold output without requiring installed packages.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 

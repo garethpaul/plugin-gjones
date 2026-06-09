@@ -49,6 +49,10 @@ Dependency updates should come from trusted package managers and should keep loc
 Run `npm run check` before changing command behavior, package scripts, CI, or
 credential-adjacent Twilio CLI behavior.
 
+Run `npm run test:command` after command-output changes so the dependency-free
+command execution test continues to cover scaffold behavior without requiring a
+live Twilio profile.
+
 ## Safe Research Guidelines
 
 Good-faith research is welcome when it stays within these boundaries:

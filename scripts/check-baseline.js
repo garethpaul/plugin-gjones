@@ -7,6 +7,7 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
 const PLAN = 'docs/plans/2026-06-08-plugin-gjones-baseline.md';
 const CHECK_PLAN = 'docs/plans/2026-06-08-plugin-gjones-check-wrapper.md';
+const COMMAND_EXECUTION_PLAN = 'docs/plans/2026-06-09-plugin-gjones-command-execution-test.md';
 const REQUIRED = [
   '.gitignore',
   'CHANGES.md',
@@ -21,6 +22,7 @@ const REQUIRED = [
   'package.json',
   PLAN,
   CHECK_PLAN,
+  COMMAND_EXECUTION_PLAN,
   'scripts/check-baseline.js',
   'src/commands/gjones/mycommand.js',
   'tests/command-output.test.js'
@@ -89,6 +91,18 @@ function main() {
     }
   }
 
+  const commandTest = read('tests/command-output.test.js');
+  for (const phrase of [
+    'vm.runInNewContext',
+    'await command.run()',
+    "assert.deepStrictEqual(lines, [EXPECTED_OUTPUT])",
+    "name === '@oclif/command'"
+  ]) {
+    if (!commandTest.includes(phrase)) {
+      failures.push(`command output test must include ${phrase}`);
+    }
+  }
+
   const appveyor = read('appveyor.yml');
   if (!appveyor.includes('nodejs_version: "10"')) {
     failures.push('appveyor.yml must use the package-supported Node 10 baseline');
@@ -118,7 +132,8 @@ function main() {
     'Twilio credentials',
     'static baseline',
     'Hello World Test!',
-    'test:command'
+    'test:command',
+    'command execution test'
   ]) {
     if (!docs.toLowerCase().includes(phrase.toLowerCase())) {
       failures.push(`docs must mention ${phrase}`);
@@ -134,6 +149,13 @@ function main() {
   for (const phrase of ['status: completed', 'make check', 'npm test']) {
     if (!checkPlan.includes(phrase)) {
       failures.push(`check wrapper plan must mention ${phrase}`);
+    }
+  }
+
+  const commandExecutionPlan = read(COMMAND_EXECUTION_PLAN);
+  for (const phrase of ['status: completed', 'vm.runInNewContext', 'npm run test:command']) {
+    if (!commandExecutionPlan.includes(phrase)) {
+      failures.push(`command execution plan must mention ${phrase}`);
     }
   }
 
