@@ -60,6 +60,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   scaffold command. It prints `Hello World Test!`.
 - The scaffold output is defined by the exported `OUTPUT_MESSAGE` output
   constant and covered by `npm run test:command`.
+- Command description metadata is covered by `npm run test:command` so the
+  scaffold help surface stays reviewable.
 - Keep `bin/run` as the executable launcher for Unix installs; `bin/run.cmd`
   remains the non-executable Windows wrapper.
 - Packaged launcher files stay included through the package `files` list.
@@ -85,7 +87,8 @@ Detected npm scripts:
 
 `npm run test:command` is a dependency-free command execution test. It evaluates
 `gjones:mycommand` with a mocked oclif `Command`, calls `run()`, and verifies the
-documented scaffold output without requiring installed packages.
+documented scaffold output and command description metadata without requiring
+installed packages.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -104,6 +107,7 @@ When the required SDK or runtime is unavailable, use static checks and source re
   static baseline unless the README and security notes explicitly document a
   new Twilio account read or write.
 - Keep the output constant aligned with the documented scaffold output.
+- Keep command description metadata covered by the command execution test.
 
 ## Maintenance Notes
 

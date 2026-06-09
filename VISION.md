@@ -27,6 +27,7 @@ Priority:
 - Keep generated documentation aligned with command names
 - Keep command execution test coverage dependency-free
 - Keep the scaffold output constant aligned with README behavior
+- Keep command description metadata covered by the command execution test
 - Keep `bin/run` as the executable launcher for Unix installs
 - Keep packaged launcher files included for npm publishes
 - Keep package oclif metadata aligned with the command topic and launcher bin

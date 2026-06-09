@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-09
+
+- Added command description metadata coverage to the scaffold command execution
+  test.
+
 ## 2026-06-08
 
 - Added a root `make check` wrapper for the static and command-output gates.

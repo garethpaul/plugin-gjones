@@ -49,6 +49,10 @@ async function main() {
 
   const CommandClass = loadCommand();
   assert.strictEqual(CommandClass.OUTPUT_MESSAGE, EXPECTED_OUTPUT);
+  assert.strictEqual(
+    CommandClass.description,
+    'Print a simple plugin scaffold message'
+  );
   const command = Object.create(CommandClass.prototype);
   const lines = [];
   command.log = line => lines.push(line);

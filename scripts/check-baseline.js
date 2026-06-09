@@ -12,6 +12,7 @@ const OUTPUT_CONSTANT_PLAN = 'docs/plans/2026-06-09-plugin-gjones-output-constan
 const BIN_MODE_PLAN = 'docs/plans/2026-06-09-plugin-gjones-bin-run-mode.md';
 const PACKAGE_FILES_PLAN = 'docs/plans/2026-06-09-plugin-gjones-package-files.md';
 const OCLIF_METADATA_PLAN = 'docs/plans/2026-06-09-plugin-gjones-oclif-metadata.md';
+const COMMAND_DESCRIPTION_PLAN = 'docs/plans/2026-06-09-plugin-gjones-command-description.md';
 const REQUIRED = [
   '.gitignore',
   'CHANGES.md',
@@ -31,6 +32,7 @@ const REQUIRED = [
   BIN_MODE_PLAN,
   PACKAGE_FILES_PLAN,
   OCLIF_METADATA_PLAN,
+  COMMAND_DESCRIPTION_PLAN,
   'scripts/check-baseline.js',
   'src/commands/gjones/mycommand.js',
   'tests/command-output.test.js'
@@ -138,6 +140,7 @@ function main() {
     'await command.run()',
     "assert.deepStrictEqual(lines, [EXPECTED_OUTPUT])",
     'CommandClass.OUTPUT_MESSAGE',
+    'CommandClass.description',
     'this.log(OUTPUT_MESSAGE);',
     "name === '@oclif/command'"
   ]) {
@@ -178,6 +181,7 @@ function main() {
     'test:command',
     'command execution test',
     'output constant',
+    'command description metadata',
     'executable launcher',
     'packaged launcher files',
     'oclif metadata'
@@ -231,6 +235,13 @@ function main() {
   for (const phrase of ['status: completed', 'oclif metadata', 'package.json', 'npm run check']) {
     if (!oclifMetadataPlan.includes(phrase)) {
       failures.push(`oclif metadata plan must mention ${phrase}`);
+    }
+  }
+
+  const commandDescriptionPlan = read(COMMAND_DESCRIPTION_PLAN);
+  for (const phrase of ['status: completed', 'CommandClass.description', 'npm run test:command']) {
+    if (!commandDescriptionPlan.includes(phrase)) {
+      failures.push(`command description plan must mention ${phrase}`);
     }
   }
 
