@@ -10,9 +10,10 @@ basic oclif command extension point.
 The goal is to keep the scaffold understandable while clarifying whether it is
 an example plugin or a maintained user-facing CLI extension.
 
-Current baseline: `npm run check` verifies the credential-free command,
-package metadata, CI guardrails, docs, and static baseline without requiring
-Twilio credentials or a live account.
+Current baseline: `npm run check`, `npm run lint`, `npm run build`, and
+`make check` verify the credential-free command, package metadata, CI
+guardrails, docs, and static baseline without requiring Twilio credentials or a
+live account.
 `npm run test:command` keeps the documented scaffold output aligned with the
 command implementation by executing `run()` with a mocked oclif base class.
 
@@ -30,6 +31,8 @@ Priority:
 - Keep command description metadata covered by the command execution test
 - Keep `bin/run` as the executable launcher for Unix installs
 - Keep packaged launcher files included for npm publishes
+- Keep `make lint`, `make build`, `npm run lint`, and `npm run build` available
+  as stable static gate aliases
 - Keep package oclif metadata aligned with the command topic and launcher bin
 
 Next priorities:
@@ -43,7 +46,8 @@ Contribution rules:
 - One PR = one focused command, package, test, or documentation change.
 - Do not add account-affecting behavior without explicit docs and tests.
 - Keep examples free of credentials.
-- Keep `npm run check` passing for command and package metadata changes.
+- Keep `npm run check`, `npm run lint`, `npm run build`, and `make check`
+  passing for command and package metadata changes.
 - Regenerate command docs only when command metadata changes.
 
 ## Security And Responsible Use

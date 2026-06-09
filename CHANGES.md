@@ -2,6 +2,8 @@
 
 ## 2026-06-09
 
+- Added stable `make lint`, `make build`, `npm run lint`, and `npm run build`
+  aliases for the static plugin baseline.
 - Added command description metadata coverage to the scaffold command execution
   test.
 

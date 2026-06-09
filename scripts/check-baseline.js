@@ -13,6 +13,7 @@ const BIN_MODE_PLAN = 'docs/plans/2026-06-09-plugin-gjones-bin-run-mode.md';
 const PACKAGE_FILES_PLAN = 'docs/plans/2026-06-09-plugin-gjones-package-files.md';
 const OCLIF_METADATA_PLAN = 'docs/plans/2026-06-09-plugin-gjones-oclif-metadata.md';
 const COMMAND_DESCRIPTION_PLAN = 'docs/plans/2026-06-09-plugin-gjones-command-description.md';
+const GATE_ALIASES_PLAN = 'docs/plans/2026-06-09-plugin-gjones-gate-aliases.md';
 const REQUIRED = [
   '.gitignore',
   'CHANGES.md',
@@ -33,6 +34,7 @@ const REQUIRED = [
   PACKAGE_FILES_PLAN,
   OCLIF_METADATA_PLAN,
   COMMAND_DESCRIPTION_PLAN,
+  GATE_ALIASES_PLAN,
   'scripts/check-baseline.js',
   'src/commands/gjones/mycommand.js',
   'tests/command-output.test.js'
@@ -64,6 +66,12 @@ function main() {
   }
   if (pkg.scripts.test !== 'npm run check && npm run test:command') {
     failures.push('npm test must run the static baseline and command output test');
+  }
+  if (pkg.scripts.lint !== 'npm run check') {
+    failures.push('npm run lint must run the static baseline');
+  }
+  if (pkg.scripts.build !== 'npm run check') {
+    failures.push('npm run build must run the static baseline');
   }
   if (pkg.scripts['test:command'] !== 'node tests/command-output.test.js') {
     failures.push('package.json must expose npm run test:command');
@@ -172,7 +180,11 @@ function main() {
     .join('\n');
   for (const phrase of [
     'make check',
+    'make lint',
+    'make build',
     'npm run check',
+    'npm run lint',
+    'npm run build',
     'credential-free',
     'no account mutations',
     'Twilio credentials',
@@ -245,9 +257,21 @@ function main() {
     }
   }
 
+  const gateAliasesPlan = read(GATE_ALIASES_PLAN);
+  for (const phrase of ['status: completed', 'make lint', 'make build', 'npm run lint', 'npm run build']) {
+    if (!gateAliasesPlan.includes(phrase)) {
+      failures.push(`gate aliases plan must mention ${phrase}`);
+    }
+  }
+
   const makefile = read('Makefile');
   if (!makefile.includes('check: verify')) {
     failures.push('Makefile must expose make check as the repository verification wrapper');
+  }
+  for (const phrase of ['lint:', 'build:', 'verify: lint test build']) {
+    if (!makefile.includes(phrase)) {
+      failures.push(`Makefile must include ${phrase}`);
+    }
   }
 
   const svg = read('docs/readme-overview.svg');

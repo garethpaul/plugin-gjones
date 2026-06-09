@@ -52,7 +52,9 @@
     "url": "https://github.com/garethpaul/plugin-gjones.git"
   },
   "scripts": {
+    "build": "npm run check",
     "check": "node scripts/check-baseline.js",
+    "lint": "npm run check",
     "postpack": "rm -f oclif.manifest.json",
     "prepack": "oclif-dev manifest && oclif-dev readme",
     "test": "npm run check && npm run test:command",

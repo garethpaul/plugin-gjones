@@ -55,7 +55,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 ## Running or Using the Project
 
-- Run `make check` before changing command behavior or package metadata.
+- Run `make check`, `make lint`, or `make build` before changing command
+  behavior or package metadata.
 - Use `./bin/run gjones:mycommand` after dependencies are installed to run the
   scaffold command. It prints `Hello World Test!`.
 - The scaffold output is defined by the exported `OUTPUT_MESSAGE` output
@@ -70,9 +71,11 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 Detected npm scripts:
 
+- `npm run build` - `npm run check`
 - `npm run postpack` - `rm -f oclif.manifest.json`
 - `npm run prepack` - `oclif-dev manifest && oclif-dev readme`
 - `npm run check` - `node scripts/check-baseline.js`
+- `npm run lint` - `npm run check`
 - `npm run test` - `npm run check && npm run test:command`
 - `npm run test:command` - `node tests/command-output.test.js`
 - `npm run version` - `oclif-dev readme && git add README.md`
@@ -80,7 +83,11 @@ Detected npm scripts:
 ## Testing and Verification
 
 - `make check`
+- `make lint`
+- `make build`
 - `npm run check`
+- `npm run lint`
+- `npm run build`
 - `npm test`
 - `node scripts/check-baseline.js`
 - `npm run test:command`
@@ -111,8 +118,9 @@ When the required SDK or runtime is unavailable, use static checks and source re
 
 ## Maintenance Notes
 
-- Run `npm run check` before changing command code, package scripts, CI, or
-  Twilio credential handling.
+- Run `npm run check`, `npm run lint`, `npm run build`, `make lint`,
+  `make build`, and `make check` before changing command code, package
+  scripts, CI, or Twilio credential handling.
 - Keep the executable launcher mode on `bin/run` intact when editing packaging
   files.
 - Keep packaged launcher files included when editing `package.json`.
