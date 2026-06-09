@@ -60,6 +60,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   scaffold command. It prints `Hello World Test!`.
 - The scaffold output is defined by the exported `OUTPUT_MESSAGE` output
   constant and covered by `npm run test:command`.
+- Keep `bin/run` as the executable launcher for Unix installs; `bin/run.cmd`
+  remains the non-executable Windows wrapper.
 
 Detected npm scripts:
 
@@ -104,6 +106,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
 
 - Run `npm run check` before changing command code, package scripts, CI, or
   Twilio credential handling.
+- Keep the executable launcher mode on `bin/run` intact when editing packaging
+  files.
 - See `CHANGES.md` and `docs/plans/2026-06-08-plugin-gjones-baseline.md` for
   the current static baseline.
 - See `SECURITY.md` for vulnerability reporting and safe research guidance.

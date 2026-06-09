@@ -52,6 +52,9 @@ credential-adjacent Twilio CLI behavior.
 Run `npm run test:command` after command-output changes so the dependency-free
 command execution test continues to cover scaffold behavior without requiring a
 live Twilio profile. Keep the output constant aligned with documented behavior.
+Keep `bin/run` as the executable launcher and avoid permission churn in
+packaging files, because broken launcher metadata can change how users run the
+plugin scaffold.
 
 ## Safe Research Guidelines
 

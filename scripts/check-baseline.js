@@ -9,6 +9,7 @@ const PLAN = 'docs/plans/2026-06-08-plugin-gjones-baseline.md';
 const CHECK_PLAN = 'docs/plans/2026-06-08-plugin-gjones-check-wrapper.md';
 const COMMAND_EXECUTION_PLAN = 'docs/plans/2026-06-09-plugin-gjones-command-execution-test.md';
 const OUTPUT_CONSTANT_PLAN = 'docs/plans/2026-06-09-plugin-gjones-output-constant.md';
+const BIN_MODE_PLAN = 'docs/plans/2026-06-09-plugin-gjones-bin-run-mode.md';
 const REQUIRED = [
   '.gitignore',
   'CHANGES.md',
@@ -25,6 +26,7 @@ const REQUIRED = [
   CHECK_PLAN,
   COMMAND_EXECUTION_PLAN,
   OUTPUT_CONSTANT_PLAN,
+  BIN_MODE_PLAN,
   'scripts/check-baseline.js',
   'src/commands/gjones/mycommand.js',
   'tests/command-output.test.js'
@@ -36,6 +38,10 @@ function read(relativePath) {
 
 function parseSource(relativePath) {
   return read(relativePath).replace(/^#![^\n]*\n/, '');
+}
+
+function isExecutable(relativePath) {
+  return Boolean(fs.statSync(path.join(ROOT, relativePath)).mode & 0o111);
 }
 
 function main() {
@@ -61,6 +67,13 @@ function main() {
   }
   if (pkg.bugs !== 'https://github.com/garethpaul/plugin-gjones/issues') {
     failures.push('package bugs URL must point at this repository');
+  }
+
+  if (!isExecutable('bin/run')) {
+    failures.push('bin/run must remain executable for Unix launcher installs');
+  }
+  if (isExecutable('bin/run.cmd')) {
+    failures.push('bin/run.cmd should not be marked executable');
   }
 
   for (const jsFile of [
@@ -139,7 +152,8 @@ function main() {
     'Hello World Test!',
     'test:command',
     'command execution test',
-    'output constant'
+    'output constant',
+    'executable launcher'
   ]) {
     if (!docs.toLowerCase().includes(phrase.toLowerCase())) {
       failures.push(`docs must mention ${phrase}`);
@@ -169,6 +183,13 @@ function main() {
   for (const phrase of ['status: completed', 'OUTPUT_MESSAGE', 'npm run test:command']) {
     if (!outputConstantPlan.includes(phrase)) {
       failures.push(`output constant plan must mention ${phrase}`);
+    }
+  }
+
+  const binModePlan = read(BIN_MODE_PLAN);
+  for (const phrase of ['status: completed', 'bin/run', 'executable', 'npm run check']) {
+    if (!binModePlan.includes(phrase)) {
+      failures.push(`bin mode plan must mention ${phrase}`);
     }
   }
 
