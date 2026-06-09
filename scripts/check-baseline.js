@@ -10,6 +10,7 @@ const CHECK_PLAN = 'docs/plans/2026-06-08-plugin-gjones-check-wrapper.md';
 const COMMAND_EXECUTION_PLAN = 'docs/plans/2026-06-09-plugin-gjones-command-execution-test.md';
 const OUTPUT_CONSTANT_PLAN = 'docs/plans/2026-06-09-plugin-gjones-output-constant.md';
 const BIN_MODE_PLAN = 'docs/plans/2026-06-09-plugin-gjones-bin-run-mode.md';
+const PACKAGE_FILES_PLAN = 'docs/plans/2026-06-09-plugin-gjones-package-files.md';
 const REQUIRED = [
   '.gitignore',
   'CHANGES.md',
@@ -27,6 +28,7 @@ const REQUIRED = [
   COMMAND_EXECUTION_PLAN,
   OUTPUT_CONSTANT_PLAN,
   BIN_MODE_PLAN,
+  PACKAGE_FILES_PLAN,
   'scripts/check-baseline.js',
   'src/commands/gjones/mycommand.js',
   'tests/command-output.test.js'
@@ -67,6 +69,9 @@ function main() {
   }
   if (pkg.bugs !== 'https://github.com/garethpaul/plugin-gjones/issues') {
     failures.push('package bugs URL must point at this repository');
+  }
+  if (!Array.isArray(pkg.files) || !pkg.files.includes('/bin')) {
+    failures.push('package.json files must include /bin so launchers are published');
   }
 
   if (!isExecutable('bin/run')) {
@@ -153,7 +158,8 @@ function main() {
     'test:command',
     'command execution test',
     'output constant',
-    'executable launcher'
+    'executable launcher',
+    'packaged launcher files'
   ]) {
     if (!docs.toLowerCase().includes(phrase.toLowerCase())) {
       failures.push(`docs must mention ${phrase}`);
@@ -190,6 +196,13 @@ function main() {
   for (const phrase of ['status: completed', 'bin/run', 'executable', 'npm run check']) {
     if (!binModePlan.includes(phrase)) {
       failures.push(`bin mode plan must mention ${phrase}`);
+    }
+  }
+
+  const packageFilesPlan = read(PACKAGE_FILES_PLAN);
+  for (const phrase of ['status: completed', '/bin', 'package.json', 'npm run check']) {
+    if (!packageFilesPlan.includes(phrase)) {
+      failures.push(`package files plan must mention ${phrase}`);
     }
   }
 

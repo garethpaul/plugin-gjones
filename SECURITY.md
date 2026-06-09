@@ -55,6 +55,8 @@ live Twilio profile. Keep the output constant aligned with documented behavior.
 Keep `bin/run` as the executable launcher and avoid permission churn in
 packaging files, because broken launcher metadata can change how users run the
 plugin scaffold.
+Keep packaged launcher files included in `package.json` so published installs
+match the reviewed local launcher behavior.
 
 ## Safe Research Guidelines
 

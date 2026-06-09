@@ -28,6 +28,7 @@ Priority:
 - Keep command execution test coverage dependency-free
 - Keep the scaffold output constant aligned with README behavior
 - Keep `bin/run` as the executable launcher for Unix installs
+- Keep packaged launcher files included for npm publishes
 
 Next priorities:
 
