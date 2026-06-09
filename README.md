@@ -63,6 +63,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 - Keep `bin/run` as the executable launcher for Unix installs; `bin/run.cmd`
   remains the non-executable Windows wrapper.
 - Packaged launcher files stay included through the package `files` list.
+- Keep the oclif metadata aligned with the `gjones` command topic, `twilio`
+  launcher bin, and `./src/commands` command directory.
 
 Detected npm scripts:
 
@@ -110,6 +112,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - Keep the executable launcher mode on `bin/run` intact when editing packaging
   files.
 - Keep packaged launcher files included when editing `package.json`.
+- Keep oclif metadata coherent when editing command names, launcher metadata, or
+  generated command docs.
 - See `CHANGES.md` and `docs/plans/2026-06-08-plugin-gjones-baseline.md` for
   the current static baseline.
 - See `SECURITY.md` for vulnerability reporting and safe research guidance.

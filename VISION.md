@@ -29,6 +29,7 @@ Priority:
 - Keep the scaffold output constant aligned with README behavior
 - Keep `bin/run` as the executable launcher for Unix installs
 - Keep packaged launcher files included for npm publishes
+- Keep package oclif metadata aligned with the command topic and launcher bin
 
 Next priorities:
 

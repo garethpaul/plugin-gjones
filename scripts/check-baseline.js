@@ -11,6 +11,7 @@ const COMMAND_EXECUTION_PLAN = 'docs/plans/2026-06-09-plugin-gjones-command-exec
 const OUTPUT_CONSTANT_PLAN = 'docs/plans/2026-06-09-plugin-gjones-output-constant.md';
 const BIN_MODE_PLAN = 'docs/plans/2026-06-09-plugin-gjones-bin-run-mode.md';
 const PACKAGE_FILES_PLAN = 'docs/plans/2026-06-09-plugin-gjones-package-files.md';
+const OCLIF_METADATA_PLAN = 'docs/plans/2026-06-09-plugin-gjones-oclif-metadata.md';
 const REQUIRED = [
   '.gitignore',
   'CHANGES.md',
@@ -29,6 +30,7 @@ const REQUIRED = [
   OUTPUT_CONSTANT_PLAN,
   BIN_MODE_PLAN,
   PACKAGE_FILES_PLAN,
+  OCLIF_METADATA_PLAN,
   'scripts/check-baseline.js',
   'src/commands/gjones/mycommand.js',
   'tests/command-output.test.js'
@@ -72,6 +74,24 @@ function main() {
   }
   if (!Array.isArray(pkg.files) || !pkg.files.includes('/bin')) {
     failures.push('package.json files must include /bin so launchers are published');
+  }
+  const oclif = pkg.oclif || {};
+  if (oclif.name !== 'gjones') {
+    failures.push('package.json oclif.name must remain gjones');
+  }
+  if (oclif.bin !== 'twilio') {
+    failures.push('package.json oclif.bin must remain twilio');
+  }
+  if (oclif.commands !== './src/commands') {
+    failures.push('package.json oclif.commands must remain ./src/commands');
+  }
+  if (typeof oclif.repositoryPrefix !== 'string' || !oclif.repositoryPrefix.includes('<%- commandPath %>')) {
+    failures.push('package.json oclif.repositoryPrefix must link command source paths');
+  }
+  if (!oclif.topics || !oclif.topics.gjones) {
+    failures.push('package.json oclif.topics must include gjones');
+  } else if (typeof oclif.topics.gjones.description !== 'string' || !oclif.topics.gjones.description.trim()) {
+    failures.push('package.json oclif.topics.gjones.description must stay populated');
   }
 
   if (!isExecutable('bin/run')) {
@@ -159,7 +179,8 @@ function main() {
     'command execution test',
     'output constant',
     'executable launcher',
-    'packaged launcher files'
+    'packaged launcher files',
+    'oclif metadata'
   ]) {
     if (!docs.toLowerCase().includes(phrase.toLowerCase())) {
       failures.push(`docs must mention ${phrase}`);
@@ -203,6 +224,13 @@ function main() {
   for (const phrase of ['status: completed', '/bin', 'package.json', 'npm run check']) {
     if (!packageFilesPlan.includes(phrase)) {
       failures.push(`package files plan must mention ${phrase}`);
+    }
+  }
+
+  const oclifMetadataPlan = read(OCLIF_METADATA_PLAN);
+  for (const phrase of ['status: completed', 'oclif metadata', 'package.json', 'npm run check']) {
+    if (!oclifMetadataPlan.includes(phrase)) {
+      failures.push(`oclif metadata plan must mention ${phrase}`);
     }
   }
 

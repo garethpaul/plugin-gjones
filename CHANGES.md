@@ -16,3 +16,5 @@
 - Moved the scaffold output text into an exported `OUTPUT_MESSAGE` constant.
 - Added a static check that preserves the executable launcher mode on `bin/run`.
 - Included packaged launcher files in the npm package file list.
+- Added a static check that preserves oclif metadata for the command topic,
+  launcher bin, command directory, and source links.
