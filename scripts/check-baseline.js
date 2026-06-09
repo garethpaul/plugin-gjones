@@ -6,9 +6,11 @@ const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
 const PLAN = 'docs/plans/2026-06-08-plugin-gjones-baseline.md';
+const CHECK_PLAN = 'docs/plans/2026-06-08-plugin-gjones-check-wrapper.md';
 const REQUIRED = [
   '.gitignore',
   'CHANGES.md',
+  'Makefile',
   'README.md',
   'SECURITY.md',
   'VISION.md',
@@ -18,6 +20,7 @@ const REQUIRED = [
   'docs/readme-overview.svg',
   'package.json',
   PLAN,
+  CHECK_PLAN,
   'scripts/check-baseline.js',
   'src/commands/gjones/mycommand.js',
   'tests/command-output.test.js'
@@ -108,6 +111,7 @@ function main() {
     .map(read)
     .join('\n');
   for (const phrase of [
+    'make check',
     'npm run check',
     'credential-free',
     'no account mutations',
@@ -124,6 +128,18 @@ function main() {
   const plan = read(PLAN);
   if (!plan.includes('status: completed') || !plan.includes('npm run check') || !plan.includes('npm run test:command')) {
     failures.push('plan must record completed status and command verification');
+  }
+
+  const checkPlan = read(CHECK_PLAN);
+  for (const phrase of ['status: completed', 'make check', 'npm test']) {
+    if (!checkPlan.includes(phrase)) {
+      failures.push(`check wrapper plan must mention ${phrase}`);
+    }
+  }
+
+  const makefile = read('Makefile');
+  if (!makefile.includes('check: verify')) {
+    failures.push('Makefile must expose make check as the repository verification wrapper');
   }
 
   const svg = read('docs/readme-overview.svg');

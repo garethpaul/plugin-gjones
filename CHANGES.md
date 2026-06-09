@@ -2,6 +2,7 @@
 
 ## 2026-06-08
 
+- Added a root `make check` wrapper for the static and command-output gates.
 - Added `npm run check` and `npm test` static baseline verification.
 - Made the scaffold command credential-free by extending oclif `Command`
   instead of a credential-aware Twilio client base class.
