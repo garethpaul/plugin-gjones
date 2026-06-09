@@ -1,7 +1,7 @@
 ## Plugin Gjones Vision
 
-Plugin Gjones is a small Twilio CLI plugin scaffold with a single `gjones`
-command topic and a simple example command.
+Plugin Gjones is a credential-free Twilio CLI plugin scaffold with a single
+`gjones` command topic and a simple example command.
 
 The repository is useful as a minimal oclif/Twilio CLI plugin reference: it
 shows package metadata, command placement, generated README structure, and the
@@ -29,6 +29,7 @@ Priority:
 - Keep command execution test coverage dependency-free
 - Keep the scaffold output constant aligned with README behavior
 - Keep command description metadata covered by the command execution test
+- Keep the package description aligned with the credential-free scaffold purpose
 - Keep `bin/run` as the executable launcher for Unix installs
 - Keep packaged launcher files included for npm publishes
 - Keep `make lint`, `make build`, `npm run lint`, and `npm run build` available
@@ -37,7 +38,6 @@ Priority:
 
 Next priorities:
 
-- Add a README note that defines the plugin purpose
 - Fix any stale package metadata or issue links
 - Document supported Node and Twilio CLI versions
 

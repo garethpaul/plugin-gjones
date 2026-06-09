@@ -1,6 +1,6 @@
 {
   "name": "@garethpaul/plugin-gjones",
-  "description": "explore gjones info",
+  "description": "Credential-free Twilio CLI plugin scaffold",
   "version": "1.0.0",
   "author": "@garethpaul",
   "bugs": "https://github.com/garethpaul/plugin-gjones/issues",

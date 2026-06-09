@@ -60,6 +60,8 @@ packaging files, because broken launcher metadata can change how users run the
 plugin scaffold.
 Keep packaged launcher files included in `package.json` so published installs
 match the reviewed local launcher behavior.
+Keep the package description aligned with the credential-free Twilio CLI plugin
+scaffold purpose so published metadata does not imply hidden account behavior.
 
 ## Safe Research Guidelines
 

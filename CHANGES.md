@@ -6,6 +6,8 @@
   aliases for the static plugin baseline.
 - Added command description metadata coverage to the scaffold command execution
   test.
+- Aligned the package description with the credential-free Twilio CLI plugin
+  scaffold purpose.
 
 ## 2026-06-08
 

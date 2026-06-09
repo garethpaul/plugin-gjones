@@ -5,8 +5,8 @@
 
 ## Overview
 
-`garethpaul/plugin-gjones` is a minimal oclif/Twilio CLI plugin scaffold with a
-single `gjones:mycommand` example command.
+`garethpaul/plugin-gjones` is a credential-free Twilio CLI plugin scaffold with
+a single `gjones:mycommand` example command.
 
 The command is credential-free and does not make Twilio API calls or account
 mutations. Future commands that read or write account data should document the
@@ -63,6 +63,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   constant and covered by `npm run test:command`.
 - Command description metadata is covered by `npm run test:command` so the
   scaffold help surface stays reviewable.
+- The package description stays aligned with the credential-free Twilio CLI
+  plugin scaffold purpose.
 - Keep `bin/run` as the executable launcher for Unix installs; `bin/run.cmd`
   remains the non-executable Windows wrapper.
 - Packaged launcher files stay included through the package `files` list.
@@ -115,6 +117,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   new Twilio account read or write.
 - Keep the output constant aligned with the documented scaffold output.
 - Keep command description metadata covered by the command execution test.
+- Keep the package description aligned with the credential-free Twilio CLI
+  plugin scaffold purpose.
 
 ## Maintenance Notes
 
@@ -126,6 +130,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - Keep packaged launcher files included when editing `package.json`.
 - Keep oclif metadata coherent when editing command names, launcher metadata, or
   generated command docs.
+- Keep the package description coherent when editing scaffold purpose or package
+  metadata.
 - See `CHANGES.md` and `docs/plans/2026-06-08-plugin-gjones-baseline.md` for
   the current static baseline.
 - See `SECURITY.md` for vulnerability reporting and safe research guidance.
