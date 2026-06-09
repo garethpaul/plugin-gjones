@@ -58,6 +58,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 - Run `make check` before changing command behavior or package metadata.
 - Use `./bin/run gjones:mycommand` after dependencies are installed to run the
   scaffold command. It prints `Hello World Test!`.
+- The scaffold output is defined by the exported `OUTPUT_MESSAGE` output
+  constant and covered by `npm run test:command`.
 
 Detected npm scripts:
 
@@ -96,6 +98,7 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - The current command is credential-free and has no account mutations. Keep that
   static baseline unless the README and security notes explicitly document a
   new Twilio account read or write.
+- Keep the output constant aligned with the documented scaffold output.
 
 ## Maintenance Notes
 

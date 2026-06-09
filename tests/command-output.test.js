@@ -13,7 +13,7 @@ const EXPECTED_OUTPUT = 'Hello World Test!';
 
 const source = fs.readFileSync(COMMAND, 'utf8');
 const readme = fs.readFileSync(README, 'utf8');
-const match = source.match(/this\.log\('([^']+)'\);/);
+const match = source.match(/const OUTPUT_MESSAGE = '([^']+)';/);
 
 function loadCommand() {
   const sandbox = {
@@ -35,6 +35,10 @@ async function main() {
   assert(match, 'gjones:mycommand should log a literal scaffold message');
   assert.strictEqual(match[1], EXPECTED_OUTPUT);
   assert(
+    source.includes('this.log(OUTPUT_MESSAGE);'),
+    'gjones:mycommand should log the shared output constant'
+  );
+  assert(
     readme.includes(EXPECTED_OUTPUT),
     'README should document the scaffold command output'
   );
@@ -44,6 +48,7 @@ async function main() {
   );
 
   const CommandClass = loadCommand();
+  assert.strictEqual(CommandClass.OUTPUT_MESSAGE, EXPECTED_OUTPUT);
   const command = Object.create(CommandClass.prototype);
   const lines = [];
   command.log = line => lines.push(line);

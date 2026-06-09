@@ -8,6 +8,7 @@ const ROOT = path.resolve(__dirname, '..');
 const PLAN = 'docs/plans/2026-06-08-plugin-gjones-baseline.md';
 const CHECK_PLAN = 'docs/plans/2026-06-08-plugin-gjones-check-wrapper.md';
 const COMMAND_EXECUTION_PLAN = 'docs/plans/2026-06-09-plugin-gjones-command-execution-test.md';
+const OUTPUT_CONSTANT_PLAN = 'docs/plans/2026-06-09-plugin-gjones-output-constant.md';
 const REQUIRED = [
   '.gitignore',
   'CHANGES.md',
@@ -23,6 +24,7 @@ const REQUIRED = [
   PLAN,
   CHECK_PLAN,
   COMMAND_EXECUTION_PLAN,
+  OUTPUT_CONSTANT_PLAN,
   'scripts/check-baseline.js',
   'src/commands/gjones/mycommand.js',
   'tests/command-output.test.js'
@@ -77,8 +79,9 @@ function main() {
   const command = read('src/commands/gjones/mycommand.js');
   for (const phrase of [
     "const { Command } = require('@oclif/command')",
+    "const OUTPUT_MESSAGE = 'Hello World Test!'",
     'class MyCommand extends Command',
-    "this.log('Hello World Test!')",
+    'this.log(OUTPUT_MESSAGE)',
     'Print a simple plugin scaffold message'
   ]) {
     if (!command.includes(phrase)) {
@@ -96,6 +99,8 @@ function main() {
     'vm.runInNewContext',
     'await command.run()',
     "assert.deepStrictEqual(lines, [EXPECTED_OUTPUT])",
+    'CommandClass.OUTPUT_MESSAGE',
+    'this.log(OUTPUT_MESSAGE);',
     "name === '@oclif/command'"
   ]) {
     if (!commandTest.includes(phrase)) {
@@ -133,7 +138,8 @@ function main() {
     'static baseline',
     'Hello World Test!',
     'test:command',
-    'command execution test'
+    'command execution test',
+    'output constant'
   ]) {
     if (!docs.toLowerCase().includes(phrase.toLowerCase())) {
       failures.push(`docs must mention ${phrase}`);
@@ -156,6 +162,13 @@ function main() {
   for (const phrase of ['status: completed', 'vm.runInNewContext', 'npm run test:command']) {
     if (!commandExecutionPlan.includes(phrase)) {
       failures.push(`command execution plan must mention ${phrase}`);
+    }
+  }
+
+  const outputConstantPlan = read(OUTPUT_CONSTANT_PLAN);
+  for (const phrase of ['status: completed', 'OUTPUT_MESSAGE', 'npm run test:command']) {
+    if (!outputConstantPlan.includes(phrase)) {
+      failures.push(`output constant plan must mention ${phrase}`);
     }
   }
 

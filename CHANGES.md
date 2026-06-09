@@ -13,3 +13,4 @@
 - Added a dependency-free `npm run test:command` guard for the scaffold output.
 - Strengthened `npm run test:command` into a command execution test that calls
   `run()` with a mocked oclif base class.
+- Moved the scaffold output text into an exported `OUTPUT_MESSAGE` constant.

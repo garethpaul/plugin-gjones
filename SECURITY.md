@@ -51,7 +51,7 @@ credential-adjacent Twilio CLI behavior.
 
 Run `npm run test:command` after command-output changes so the dependency-free
 command execution test continues to cover scaffold behavior without requiring a
-live Twilio profile.
+live Twilio profile. Keep the output constant aligned with documented behavior.
 
 ## Safe Research Guidelines
 

@@ -26,6 +26,7 @@ Priority:
 - Keep the current command credential-free and free of account mutations
 - Keep generated documentation aligned with command names
 - Keep command execution test coverage dependency-free
+- Keep the scaffold output constant aligned with README behavior
 
 Next priorities:
 
