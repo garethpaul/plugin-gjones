@@ -67,6 +67,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   plugin scaffold purpose.
 - Keep `bin/run` as the executable launcher for Unix installs; `bin/run.cmd`
   remains the non-executable Windows wrapper.
+- Keep the Windows launcher wrapper as a quiet delegation to the adjacent
+  `bin/run` Node entry point.
 - Packaged launcher files stay included through the package `files` list.
 - Keep the oclif metadata aligned with the `gjones` command topic, `twilio`
   launcher bin, and `./src/commands` command directory.
@@ -127,6 +129,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   scripts, CI, or Twilio credential handling.
 - Keep the executable launcher mode on `bin/run` intact when editing packaging
   files.
+- Keep the Windows launcher wrapper pointed at the adjacent Node launcher when
+  editing packaging files.
 - Keep packaged launcher files included when editing `package.json`.
 - Keep oclif metadata coherent when editing command names, launcher metadata, or
   generated command docs.

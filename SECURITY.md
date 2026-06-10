@@ -58,6 +58,8 @@ help surface remains reviewable.
 Keep `bin/run` as the executable launcher and avoid permission churn in
 packaging files, because broken launcher metadata can change how users run the
 plugin scaffold.
+Keep the Windows launcher wrapper as a quiet delegation to the adjacent Node
+launcher so Windows installs run the same reviewed entry point as local tests.
 Keep packaged launcher files included in `package.json` so published installs
 match the reviewed local launcher behavior.
 Keep the package description aligned with the credential-free Twilio CLI plugin

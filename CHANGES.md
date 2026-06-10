@@ -1,5 +1,9 @@
 # Changes
 
+## 2026-06-10
+
+- Added a static guard for the Windows launcher wrapper entry point.
+
 ## 2026-06-09
 
 - Added stable `make lint`, `make build`, `npm run lint`, and `npm run build`

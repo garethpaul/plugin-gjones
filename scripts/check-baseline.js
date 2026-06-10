@@ -15,6 +15,7 @@ const OCLIF_METADATA_PLAN = 'docs/plans/2026-06-09-plugin-gjones-oclif-metadata.
 const COMMAND_DESCRIPTION_PLAN = 'docs/plans/2026-06-09-plugin-gjones-command-description.md';
 const GATE_ALIASES_PLAN = 'docs/plans/2026-06-09-plugin-gjones-gate-aliases.md';
 const PACKAGE_DESCRIPTION_PLAN = 'docs/plans/2026-06-09-plugin-gjones-package-description.md';
+const WINDOWS_LAUNCHER_PLAN = 'docs/plans/2026-06-10-plugin-gjones-windows-launcher.md';
 const REQUIRED = [
   '.gitignore',
   'CHANGES.md',
@@ -37,6 +38,7 @@ const REQUIRED = [
   COMMAND_DESCRIPTION_PLAN,
   GATE_ALIASES_PLAN,
   PACKAGE_DESCRIPTION_PLAN,
+  WINDOWS_LAUNCHER_PLAN,
   'scripts/check-baseline.js',
   'src/commands/gjones/mycommand.js',
   'tests/command-output.test.js'
@@ -114,6 +116,13 @@ function main() {
   }
   if (isExecutable('bin/run.cmd')) {
     failures.push('bin/run.cmd should not be marked executable');
+  }
+  const windowsLauncher = read('bin/run.cmd');
+  if (!windowsLauncher.includes('@echo off')) {
+    failures.push('bin/run.cmd must stay quiet before delegating to Node');
+  }
+  if (!windowsLauncher.includes('node "%~dp0\\run" %*')) {
+    failures.push('bin/run.cmd must invoke the adjacent Unix launcher through Node');
   }
 
   for (const jsFile of [
@@ -202,6 +211,7 @@ function main() {
     'package description',
     'credential-free Twilio CLI plugin scaffold',
     'executable launcher',
+    'Windows launcher wrapper',
     'packaged launcher files',
     'oclif metadata'
   ]) {
@@ -275,6 +285,13 @@ function main() {
   for (const phrase of ['status: completed', 'package.json', 'credential-free Twilio CLI plugin scaffold', 'npm run check']) {
     if (!packageDescriptionPlan.includes(phrase)) {
       failures.push(`package description plan must mention ${phrase}`);
+    }
+  }
+
+  const windowsLauncherPlan = read(WINDOWS_LAUNCHER_PLAN);
+  for (const phrase of ['status: completed', 'bin/run.cmd', 'Windows launcher wrapper', 'npm run check']) {
+    if (!windowsLauncherPlan.includes(phrase)) {
+      failures.push(`windows launcher plan must mention ${phrase}`);
     }
   }
 

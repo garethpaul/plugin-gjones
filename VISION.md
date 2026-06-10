@@ -31,6 +31,7 @@ Priority:
 - Keep command description metadata covered by the command execution test
 - Keep the package description aligned with the credential-free scaffold purpose
 - Keep `bin/run` as the executable launcher for Unix installs
+- Keep the Windows launcher wrapper delegated to the adjacent Node launcher
 - Keep packaged launcher files included for npm publishes
 - Keep `make lint`, `make build`, `npm run lint`, and `npm run build` available
   as stable static gate aliases
