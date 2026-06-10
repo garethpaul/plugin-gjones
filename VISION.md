@@ -31,6 +31,7 @@ Priority:
 - Keep generated documentation aligned with command names
 - Keep command execution test coverage dependency-free
 - Keep the scaffold output constant aligned with README behavior
+- Keep the immutable output export aligned with runtime command behavior
 - Keep command description metadata covered by the command execution test
 - Keep the package description aligned with the credential-free scaffold purpose
 - Keep `bin/run` as the executable launcher for Unix installs

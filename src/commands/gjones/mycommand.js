@@ -11,4 +11,7 @@ class MyCommand extends Command {
 MyCommand.description = 'Print a simple plugin scaffold message';
 
 module.exports = MyCommand;
-module.exports.OUTPUT_MESSAGE = OUTPUT_MESSAGE;
+Object.defineProperty(module.exports, 'OUTPUT_MESSAGE', {
+  value: OUTPUT_MESSAGE,
+  enumerable: true
+});

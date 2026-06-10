@@ -16,6 +16,7 @@ const COMMAND_DESCRIPTION_PLAN = 'docs/plans/2026-06-09-plugin-gjones-command-de
 const GATE_ALIASES_PLAN = 'docs/plans/2026-06-09-plugin-gjones-gate-aliases.md';
 const PACKAGE_DESCRIPTION_PLAN = 'docs/plans/2026-06-09-plugin-gjones-package-description.md';
 const WINDOWS_LAUNCHER_PLAN = 'docs/plans/2026-06-10-plugin-gjones-windows-launcher.md';
+const IMMUTABLE_OUTPUT_PLAN = 'docs/plans/2026-06-10-plugin-gjones-immutable-output-export.md';
 const HOSTED_VALIDATION_PLAN = 'docs/plans/2026-06-10-hosted-node-validation.md';
 const REQUIRED = [
   '.github/workflows/check.yml',
@@ -41,6 +42,7 @@ const REQUIRED = [
   GATE_ALIASES_PLAN,
   PACKAGE_DESCRIPTION_PLAN,
   WINDOWS_LAUNCHER_PLAN,
+  IMMUTABLE_OUTPUT_PLAN,
   HOSTED_VALIDATION_PLAN,
   'scripts/check-baseline.js',
   'src/commands/gjones/mycommand.js',
@@ -147,6 +149,8 @@ function main() {
     "const OUTPUT_MESSAGE = 'Hello World Test!'",
     'class MyCommand extends Command',
     'this.log(OUTPUT_MESSAGE)',
+    "Object.defineProperty(module.exports, 'OUTPUT_MESSAGE'",
+    'enumerable: true',
     'Print a simple plugin scaffold message'
   ]) {
     if (!command.includes(phrase)) {
@@ -165,6 +169,10 @@ function main() {
     'await command.run()',
     "assert.deepStrictEqual(lines, [EXPECTED_OUTPUT])",
     'CommandClass.OUTPUT_MESSAGE',
+    "Object.getOwnPropertyDescriptor(CommandClass, 'OUTPUT_MESSAGE')",
+    'outputDescriptor.writable, false',
+    'outputDescriptor.configurable, false',
+    "CommandClass.OUTPUT_MESSAGE = 'Changed output'",
     'CommandClass.description',
     'this.log(OUTPUT_MESSAGE);',
     "name === '@oclif/command'"
@@ -226,6 +234,7 @@ function main() {
     'test:command',
     'command execution test',
     'output constant',
+    'immutable output export',
     'command description metadata',
     'package description',
     'credential-free Twilio CLI plugin scaffold',
@@ -312,6 +321,13 @@ function main() {
   for (const phrase of ['status: completed', 'bin/run.cmd', 'Windows launcher wrapper', 'npm run check']) {
     if (!windowsLauncherPlan.includes(phrase)) {
       failures.push(`windows launcher plan must mention ${phrase}`);
+    }
+  }
+
+  const immutableOutputPlan = read(IMMUTABLE_OUTPUT_PLAN);
+  for (const phrase of ['status: completed', 'Object.defineProperty', 'non-writable', 'npm run test:command']) {
+    if (!immutableOutputPlan.includes(phrase)) {
+      failures.push(`immutable output plan must mention ${phrase}`);
     }
   }
 

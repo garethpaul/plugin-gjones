@@ -32,6 +32,7 @@
 - Strengthened `npm run test:command` into a command execution test that calls
   `run()` with a mocked oclif base class.
 - Moved the scaffold output text into an exported `OUTPUT_MESSAGE` constant.
+- Made the exported output constant non-writable and non-configurable.
 - Added a static check that preserves the executable launcher mode on `bin/run`.
 - Included packaged launcher files in the npm package file list.
 - Added a static check that preserves oclif metadata for the command topic,

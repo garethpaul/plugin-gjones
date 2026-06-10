@@ -49,6 +49,14 @@ async function main() {
 
   const CommandClass = loadCommand();
   assert.strictEqual(CommandClass.OUTPUT_MESSAGE, EXPECTED_OUTPUT);
+  const outputDescriptor = Object.getOwnPropertyDescriptor(CommandClass, 'OUTPUT_MESSAGE');
+  assert.strictEqual(outputDescriptor.enumerable, true);
+  assert.strictEqual(outputDescriptor.writable, false);
+  assert.strictEqual(outputDescriptor.configurable, false);
+  assert.throws(() => {
+    CommandClass.OUTPUT_MESSAGE = 'Changed output';
+  }, TypeError);
+  assert.strictEqual(CommandClass.OUTPUT_MESSAGE, EXPECTED_OUTPUT);
   assert.strictEqual(
     CommandClass.description,
     'Print a simple plugin scaffold message'

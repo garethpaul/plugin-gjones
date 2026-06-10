@@ -57,6 +57,8 @@ scripts, CI, or credential-adjacent Twilio CLI behavior.
 Run `npm run test:command` after command-output changes so the dependency-free
 command execution test continues to cover scaffold behavior without requiring a
 live Twilio profile. Keep the output constant aligned with documented behavior.
+Keep the immutable output export aligned with the command so consumers cannot
+replace public metadata independently of runtime behavior.
 Keep command description metadata covered by the command execution test so the
 help surface remains reviewable.
 Keep `bin/run` as the executable launcher and avoid permission churn in
