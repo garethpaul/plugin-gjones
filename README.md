@@ -86,6 +86,9 @@ Detected npm scripts:
 
 ## Testing and Verification
 
+Pinned hosted Linux validation runs the dependency-free `npm test` baseline on
+Node 18 and Node 22 without installing the unlocked legacy oclif/Twilio graph.
+
 - `make check`
 - `make lint`
 - `make build`

@@ -21,6 +21,9 @@ The current focus is:
 
 Priority:
 
+- Keep the dependency-free command baseline running on pinned hosted Linux with
+  Node 18 and Node 22
+
 - Preserve the minimal command scaffold
 - Keep oclif and Twilio CLI metadata coherent
 - Avoid adding side effects to the example command

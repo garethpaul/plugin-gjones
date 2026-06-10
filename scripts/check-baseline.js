@@ -16,7 +16,9 @@ const COMMAND_DESCRIPTION_PLAN = 'docs/plans/2026-06-09-plugin-gjones-command-de
 const GATE_ALIASES_PLAN = 'docs/plans/2026-06-09-plugin-gjones-gate-aliases.md';
 const PACKAGE_DESCRIPTION_PLAN = 'docs/plans/2026-06-09-plugin-gjones-package-description.md';
 const WINDOWS_LAUNCHER_PLAN = 'docs/plans/2026-06-10-plugin-gjones-windows-launcher.md';
+const HOSTED_VALIDATION_PLAN = 'docs/plans/2026-06-10-hosted-node-validation.md';
 const REQUIRED = [
+  '.github/workflows/check.yml',
   '.gitignore',
   'CHANGES.md',
   'Makefile',
@@ -39,6 +41,7 @@ const REQUIRED = [
   GATE_ALIASES_PLAN,
   PACKAGE_DESCRIPTION_PLAN,
   WINDOWS_LAUNCHER_PLAN,
+  HOSTED_VALIDATION_PLAN,
   'scripts/check-baseline.js',
   'src/commands/gjones/mycommand.js',
   'tests/command-output.test.js'
@@ -175,6 +178,22 @@ function main() {
   if (!appveyor.includes('nodejs_version: "10"')) {
     failures.push('appveyor.yml must use the package-supported Node 10 baseline');
   }
+
+  const workflow = read('.github/workflows/check.yml');
+  for (const phrase of [
+    'permissions:\n  contents: read',
+    'cancel-in-progress: true',
+    'runs-on: ubuntu-24.04',
+    'timeout-minutes: 10',
+    'actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10',
+    'actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e',
+    'node-version: [18, 22]',
+    'run: npm test'
+  ]) {
+    if (!workflow.includes(phrase)) {
+      failures.push(`Check workflow must keep ${phrase}`);
+    }
+  }
   const forbiddenCi = ['Invoke-' + 'WebRequest', 'codecov' + '.io', 'bash ' + 'codecov.sh'];
   for (const forbidden of forbiddenCi) {
     if (appveyor.includes(forbidden)) {
@@ -213,7 +232,8 @@ function main() {
     'executable launcher',
     'Windows launcher wrapper',
     'packaged launcher files',
-    'oclif metadata'
+    'oclif metadata',
+    'hosted Linux'
   ]) {
     if (!docs.toLowerCase().includes(phrase.toLowerCase())) {
       failures.push(`docs must mention ${phrase}`);
@@ -292,6 +312,13 @@ function main() {
   for (const phrase of ['status: completed', 'bin/run.cmd', 'Windows launcher wrapper', 'npm run check']) {
     if (!windowsLauncherPlan.includes(phrase)) {
       failures.push(`windows launcher plan must mention ${phrase}`);
+    }
+  }
+
+  const hostedValidationPlan = read(HOSTED_VALIDATION_PLAN);
+  for (const phrase of ['status: completed', 'Node 18', 'Node 22', 'npm test']) {
+    if (!hostedValidationPlan.includes(phrase)) {
+      failures.push(`hosted validation plan must mention ${phrase}`);
     }
   }
 

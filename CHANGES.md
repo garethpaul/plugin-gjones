@@ -2,6 +2,11 @@
 
 ## 2026-06-10
 
+- Added pinned, read-only hosted Linux validation on Node 18 and Node 22 for
+  the dependency-free plugin command baseline.
+
+## 2026-06-10
+
 - Added a static guard for the Windows launcher wrapper entry point.
 
 ## 2026-06-09
