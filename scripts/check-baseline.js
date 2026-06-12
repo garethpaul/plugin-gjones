@@ -57,7 +57,7 @@ const REQUIRED = [
 ];
 
 function read(relativePath) {
-  return fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
+  return fs.readFileSync(path.join(ROOT, relativePath), 'utf8').replace(/\r\n/g, '\n');
 }
 
 function parseSource(relativePath) {
@@ -147,11 +147,13 @@ function main() {
     failures.push('package.json oclif.topics.gjones.description must stay populated');
   }
 
-  if (!isExecutable('bin/run')) {
-    failures.push('bin/run must remain executable for Unix launcher installs');
-  }
-  if (isExecutable('bin/run.cmd')) {
-    failures.push('bin/run.cmd should not be marked executable');
+  if (process.platform !== 'win32') {
+    if (!isExecutable('bin/run')) {
+      failures.push('bin/run must remain executable for Unix launcher installs');
+    }
+    if (isExecutable('bin/run.cmd')) {
+      failures.push('bin/run.cmd should not be marked executable');
+    }
   }
   const windowsLauncher = read('bin/run.cmd');
   if (!windowsLauncher.includes('@echo off')) {
