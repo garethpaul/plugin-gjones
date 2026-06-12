@@ -1,6 +1,6 @@
 # Plugin Gjones oclif Toolchain Migration
 
-status: in_progress
+status: completed
 
 ## Goal
 
@@ -50,6 +50,42 @@ runtime floor.
   nonportable Make execution
 - successful exact-head push and pull-request jobs on `ubuntu-24.04` and
   `windows-2025` using Node 24
+
+## Work Completed
+
+- Migrated the command and launcher from archived oclif packages to compatible
+  `@oclif/core` 1.26.2 and Twilio CLI Core 8.3.4 APIs.
+- Replaced `@oclif/dev-cli` with oclif 4.23.14 and removed unused direct test,
+  lint, coverage, and glob dependencies.
+- Added a lockfileVersion 3 graph, installed launcher smoke coverage, portable
+  package cleanup, and caller-directory-independent Make targets.
+- Replaced AppVeyor with pinned Ubuntu 24.04 and Windows 2025 GitHub Actions
+  jobs using script-disabled locked installs, full audits, tests, and package
+  dry runs.
+- Normalized CRLF reads and limited Unix executable-bit checks to non-Windows
+  hosts after the first Windows hosted run exposed those portability gaps.
+
+## Verification Completed
+
+- Node 24.16.0 completed `npm ci --ignore-scripts`, `npm run check`, `npm test`,
+  `make lint`, `make test`, `make build`, `make verify`, and `make check`.
+- The full Make gate passed from an external working directory.
+- `npm audit --audit-level=low` reported zero vulnerabilities across 462 installed packages.
+- `npm pack --dry-run` produced the expected six files and portable postpack
+  cleanup removed `oclif.manifest.json`.
+- The dependency-free output test and installed
+  `tests/oclif-command-smoke.test.js` suite passed with exact
+  `Hello World Test!` output.
+- Eight hostile implementation mutations covering archived imports, core
+  drift, missing lockfile, weakened audit, missing Windows coverage, removed
+  smoke tests, nonportable Make execution, and restored AppVeyor were rejected.
+- A CRLF workflow simulation passed after line-ending normalization was added.
+- CodeQL run `27413299838` completed successfully on implementation commit
+  `7a6faa081e4617ad96778440ca6a8e228253c954`.
+- GitHub Actions push run `27413384712` and pull-request run `27413387196`
+  completed successfully on exact implementation head
+  `ea4ad6c0a5d93e765d4530b15f4f20ed1879167a`, each covering
+  `ubuntu-24.04`, `windows-2025`, and Node 24.
 
 ## Boundaries
 

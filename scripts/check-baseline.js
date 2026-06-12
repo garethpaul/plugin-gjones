@@ -60,6 +60,15 @@ function read(relativePath) {
   return fs.readFileSync(path.join(ROOT, relativePath), 'utf8').replace(/\r\n/g, '\n');
 }
 
+function markdownSection(text, heading) {
+  const lines = text.split('\n');
+  const start = lines.indexOf(`## ${heading}`);
+  if (start === -1) return '';
+  const followingHeading = lines.slice(start + 1).findIndex(line => line.startsWith('## '));
+  const end = followingHeading === -1 ? lines.length : start + 1 + followingHeading;
+  return lines.slice(start + 1, end).join('\n').trim();
+}
+
 function parseSource(relativePath) {
   return read(relativePath).replace(/^#![^\n]*\n/, '');
 }
@@ -437,9 +446,43 @@ function main() {
   }
 
   const oclifToolchainPlan = read(OCLIF_TOOLCHAIN_PLAN);
-  for (const phrase of ['status: in_progress', '33 known vulnerabilities', '@oclif/core', 'package-lock.json', 'windows-2025', 'npm audit --audit-level=low']) {
-    if (!oclifToolchainPlan.includes(phrase)) {
-      failures.push(`oclif toolchain migration plan must mention ${phrase}`);
+  const oclifToolchainStatus = [...oclifToolchainPlan.matchAll(/^status:\s*(.+?)\s*$/gmi)].map(match => match[1]);
+  const oclifToolchainWork = markdownSection(oclifToolchainPlan, 'Work Completed');
+  const oclifToolchainVerification = markdownSection(oclifToolchainPlan, 'Verification Completed');
+  if (oclifToolchainStatus.length !== 1 || oclifToolchainStatus[0] !== 'completed' || !oclifToolchainWork) {
+    failures.push('oclif toolchain migration plan must record one completed status and completed work');
+  }
+  if (!oclifToolchainVerification || /\b(?:pending|todo|tbd|not run)\b/i.test(oclifToolchainVerification)) {
+    failures.push('oclif toolchain migration plan must record finished verification without pending markers');
+  }
+  for (const evidence of [
+    'Node 24.16.0',
+    'npm ci --ignore-scripts',
+    'npm audit --audit-level=low',
+    'npm run check',
+    'npm test',
+    'make lint',
+    'make test',
+    'make build',
+    'make verify',
+    'make check',
+    'external working directory',
+    '462 installed packages',
+    'expected six files',
+    'tests/oclif-command-smoke.test.js',
+    'Hello World Test!',
+    'Eight hostile implementation mutations',
+    'CRLF workflow simulation',
+    '27413299838',
+    '27413384712',
+    '27413387196',
+    '7a6faa081e4617ad96778440ca6a8e228253c954',
+    'ea4ad6c0a5d93e765d4530b15f4f20ed1879167a',
+    'ubuntu-24.04',
+    'windows-2025'
+  ]) {
+    if (!oclifToolchainVerification.includes(evidence)) {
+      failures.push(`oclif toolchain migration plan must preserve verification evidence: ${evidence}`);
     }
   }
 
