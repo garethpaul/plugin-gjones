@@ -1,5 +1,5 @@
 environment:
-  nodejs_version: "10"
+  nodejs_version: "24"
 cache:
   - '%AppData%\npm-cache -> appveyor.yml'
   - node_modules -> package-lock.json

@@ -49,6 +49,10 @@ Dependency updates should come from trusted package managers and should keep loc
 Run `npm run check`, `npm run lint`, `npm run build`, `make lint`,
 `make build`, and `make check` before changing command behavior, package
 scripts, CI, or credential-adjacent Twilio CLI behavior.
+Node 24 is the local and hosted toolchain baseline. Keep `.nvmrc`,
+`package.json` engines, AppVeyor, and GitHub Actions aligned, and keep the
+hosted workflow on the dependency-free baseline unless a lockfile-backed install
+path is added.
 
 Run `npm run test:command` after command-output changes so the dependency-free
 command execution test continues to cover scaffold behavior without requiring a

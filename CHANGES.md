@@ -2,6 +2,9 @@
 
 ## 2026-06-10
 
+- Refreshed the stale Node toolchain baseline to Node 24 across `.nvmrc`,
+  package engines, AppVeyor, and GitHub Actions while keeping verification on
+  the dependency-free baseline.
 - Added a static guard for the Windows launcher wrapper entry point.
 
 ## 2026-06-09

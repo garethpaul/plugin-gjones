@@ -16,8 +16,12 @@ const COMMAND_DESCRIPTION_PLAN = 'docs/plans/2026-06-09-plugin-gjones-command-de
 const GATE_ALIASES_PLAN = 'docs/plans/2026-06-09-plugin-gjones-gate-aliases.md';
 const PACKAGE_DESCRIPTION_PLAN = 'docs/plans/2026-06-09-plugin-gjones-package-description.md';
 const WINDOWS_LAUNCHER_PLAN = 'docs/plans/2026-06-10-plugin-gjones-windows-launcher.md';
+const NODE24_TOOLCHAIN_PLAN = 'docs/plans/2026-06-10-plugin-gjones-node24-toolchain.md';
 const REQUIRED = [
+  '.github/CODEOWNERS',
+  '.github/workflows/check.yml',
   '.gitignore',
+  '.nvmrc',
   'CHANGES.md',
   'Makefile',
   'README.md',
@@ -39,6 +43,7 @@ const REQUIRED = [
   GATE_ALIASES_PLAN,
   PACKAGE_DESCRIPTION_PLAN,
   WINDOWS_LAUNCHER_PLAN,
+  NODE24_TOOLCHAIN_PLAN,
   'scripts/check-baseline.js',
   'src/commands/gjones/mycommand.js',
   'tests/command-output.test.js'
@@ -85,6 +90,9 @@ function main() {
   }
   if (pkg.scripts.posttest) {
     failures.push('posttest should not run npm audit without a committed lockfile');
+  }
+  if (!pkg.engines || pkg.engines.node !== '>=24.0.0') {
+    failures.push('package.json engines.node must require the Node 24 baseline');
   }
   if (pkg.bugs !== 'https://github.com/garethpaul/plugin-gjones/issues') {
     failures.push('package bugs URL must point at this repository');
@@ -172,8 +180,8 @@ function main() {
   }
 
   const appveyor = read('appveyor.yml');
-  if (!appveyor.includes('nodejs_version: "10"')) {
-    failures.push('appveyor.yml must use the package-supported Node 10 baseline');
+  if (!appveyor.includes('nodejs_version: "24"')) {
+    failures.push('appveyor.yml must use the package-supported Node 24 baseline');
   }
   const forbiddenCi = ['Invoke-' + 'WebRequest', 'codecov' + '.io', 'bash ' + 'codecov.sh'];
   for (const forbidden of forbiddenCi) {
@@ -187,6 +195,43 @@ function main() {
     if (!gitignore.includes(phrase)) {
       failures.push(`.gitignore must include ${phrase}`);
     }
+  }
+
+  const nvmrc = read('.nvmrc').trim();
+  if (nvmrc !== '24') {
+    failures.push('.nvmrc must pin the Node 24 toolchain baseline');
+  }
+
+  const workflow = read('.github/workflows/check.yml');
+  const actions = [...workflow.matchAll(/^\s*(?:-\s*)?uses:\s*(\S+)(?:\s+#.*)?$/gm)].map((match) => match[1]);
+  for (const phrase of [
+    'permissions:\n  contents: read',
+    'cancel-in-progress: true',
+    'runs-on: ubuntu-24.04',
+    'timeout-minutes: 10',
+    'persist-credentials: false',
+    'node-version-file: .nvmrc',
+    'run: make check'
+  ]) {
+    if (!workflow.includes(phrase)) {
+      failures.push(`GitHub Actions workflow must mention ${phrase}`);
+    }
+  }
+  if (actions.join('\n') !== [
+    'actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10',
+    'actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e'
+  ].join('\n')) {
+    failures.push('GitHub Actions workflow must use only the pinned checkout and setup-node actions');
+  }
+  if (workflow.match(/persist-credentials:/g)?.length !== 1) {
+    failures.push('GitHub Actions workflow must set checkout credential persistence exactly once');
+  }
+  const workflowFiles = fs.readdirSync(path.join(ROOT, '.github/workflows'));
+  if (workflowFiles.length !== 1 || workflowFiles[0] !== 'check.yml') {
+    failures.push('check.yml must be the repository\'s only hosted workflow');
+  }
+  if (read('.github/CODEOWNERS').trim() !== '* @garethpaul') {
+    failures.push('CODEOWNERS must assign the repository to @garethpaul');
   }
 
   const docs = ['README.md', 'SECURITY.md', 'VISION.md', 'CHANGES.md']
@@ -213,7 +258,10 @@ function main() {
     'executable launcher',
     'Windows launcher wrapper',
     'packaged launcher files',
-    'oclif metadata'
+    'oclif metadata',
+    'Node 24',
+    'GitHub Actions',
+    'dependency-free baseline'
   ]) {
     if (!docs.toLowerCase().includes(phrase.toLowerCase())) {
       failures.push(`docs must mention ${phrase}`);
@@ -292,6 +340,13 @@ function main() {
   for (const phrase of ['status: completed', 'bin/run.cmd', 'Windows launcher wrapper', 'npm run check']) {
     if (!windowsLauncherPlan.includes(phrase)) {
       failures.push(`windows launcher plan must mention ${phrase}`);
+    }
+  }
+
+  const node24ToolchainPlan = read(NODE24_TOOLCHAIN_PLAN);
+  for (const phrase of ['status: completed', 'Node 24', '.nvmrc', 'GitHub Actions', 'make check']) {
+    if (!node24ToolchainPlan.includes(phrase)) {
+      failures.push(`Node 24 toolchain plan must mention ${phrase}`);
     }
   }
 

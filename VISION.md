@@ -16,6 +16,8 @@ guardrails, docs, and static baseline without requiring Twilio credentials or a
 live account.
 `npm run test:command` keeps the documented scaffold output aligned with the
 command implementation by executing `run()` with a mocked oclif base class.
+Node 24 is the documented local and hosted toolchain baseline, and GitHub
+Actions runs the dependency-free baseline without installing packages.
 
 The current focus is:
 
@@ -36,11 +38,12 @@ Priority:
 - Keep `make lint`, `make build`, `npm run lint`, and `npm run build` available
   as stable static gate aliases
 - Keep package oclif metadata aligned with the command topic and launcher bin
+- Keep Node 24, `.nvmrc`, AppVeyor, and GitHub Actions aligned
 
 Next priorities:
 
 - Fix any stale package metadata or issue links
-- Document supported Node and Twilio CLI versions
+- Document supported Twilio CLI versions
 
 Contribution rules:
 

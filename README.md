@@ -41,14 +41,15 @@ Additional scan context:
 ### Prerequisites
 
 - Git
-- Node.js and npm
+- Node.js 24 or newer and npm
 
 ### Setup
 
 ```bash
 git clone https://github.com/garethpaul/plugin-gjones.git
 cd plugin-gjones
-npm install
+nvm use
+make check
 ```
 
 The setup commands above are derived from repository files. Legacy mobile, Python, or JavaScript samples may require older SDKs or package versions than a modern workstation uses by default.
@@ -100,6 +101,8 @@ Detected npm scripts:
 `gjones:mycommand` with a mocked oclif `Command`, calls `run()`, and verifies the
 documented scaffold output and command description metadata without requiring
 installed packages.
+GitHub Actions reads `.nvmrc`, uses Node 24, and runs the same dependency-free baseline
+through `make check` on pushes and pull requests.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -127,6 +130,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - Run `npm run check`, `npm run lint`, `npm run build`, `make lint`,
   `make build`, and `make check` before changing command code, package
   scripts, CI, or Twilio credential handling.
+- Keep `.nvmrc`, `package.json` engines, AppVeyor, and GitHub Actions aligned
+  on the Node 24 toolchain baseline.
 - Keep the executable launcher mode on `bin/run` intact when editing packaging
   files.
 - Keep the Windows launcher wrapper pointed at the adjacent Node launcher when
