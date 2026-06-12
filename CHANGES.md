@@ -7,6 +7,8 @@
   Make targets.
 - Replaced AppVeyor with pinned Ubuntu 24.04 and Windows 2025 GitHub Actions
   jobs on Node 24 using script-disabled locked installs and package dry runs.
+- Added a required `check` aggregator over the platform matrix to preserve the
+  repository's existing protected status context without reducing coverage.
 
 ## 2026-06-10
 

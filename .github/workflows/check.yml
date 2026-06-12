@@ -13,7 +13,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check:
+  matrix:
+    name: check (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
@@ -43,3 +44,15 @@ jobs:
 
       - name: Validate package contents
         run: npm pack --dry-run
+
+  check:
+    name: check
+    if: ${{ always() }}
+    needs: matrix
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Require every platform lane
+        env:
+          MATRIX_RESULT: ${{ needs.matrix.result }}
+        run: test "$MATRIX_RESULT" = success

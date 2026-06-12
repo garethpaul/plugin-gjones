@@ -64,6 +64,8 @@ runtime floor.
   dry runs.
 - Normalized CRLF reads and limited Unix executable-bit checks to non-Windows
   hosts after the first Windows hosted run exposed those portability gaps.
+- Added a protected `check` aggregator that requires the full Ubuntu and Windows
+  matrix so the existing branch-protection context remains satisfied.
 
 ## Verification Completed
 

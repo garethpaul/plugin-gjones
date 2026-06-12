@@ -268,6 +268,7 @@ function main() {
     'permissions:\n  contents: read',
     'cancel-in-progress: true',
     'os: [ubuntu-24.04, windows-2025]',
+    'name: check (${{ matrix.os }})',
     'runs-on: ${{ matrix.os }}',
     'timeout-minutes: 10',
     'persist-credentials: false',
@@ -276,7 +277,11 @@ function main() {
     'run: npm ci --ignore-scripts',
     'run: npm audit --audit-level=low',
     'run: npm test',
-    'run: npm pack --dry-run'
+    'run: npm pack --dry-run',
+    'name: check',
+    'needs: matrix',
+    'MATRIX_RESULT: ${{ needs.matrix.result }}',
+    'run: test "$MATRIX_RESULT" = success'
   ]) {
     if (!workflow.includes(phrase)) {
       failures.push(`GitHub Actions workflow must mention ${phrase}`);
@@ -297,6 +302,9 @@ function main() {
   const auditRuns = [...workflow.matchAll(/^\s*run:\s*(npm audit\S*.*)$/gm)].map(match => match[1].trim());
   if (JSON.stringify(auditRuns) !== JSON.stringify(['npm audit --audit-level=low']) || workflow.includes('npm audit --omit')) {
     failures.push('GitHub Actions must run exactly one full-graph npm audit at the low-severity threshold');
+  }
+  if ((workflow.match(/^\s{2}check:\s*$/gm) || []).length !== 1 || (workflow.match(/^\s{4}name:\s*check\s*$/gm) || []).length !== 1) {
+    failures.push('GitHub Actions must expose one protected check context after the platform matrix');
   }
   if (workflow.match(/permissions:/g)?.length !== 1 || /^\s+[A-Za-z-]+:\s+write\s*$/m.test(workflow)) {
     failures.push('GitHub Actions workflow must keep one read-only permissions block');
