@@ -5,6 +5,10 @@
 - Refreshed the stale Node toolchain baseline to Node 24 across `.nvmrc`,
   package engines, AppVeyor, and GitHub Actions while keeping verification on
   the dependency-free baseline.
+- Added pinned, credential-free, read-only hosted Linux validation on Node 24
+  for the dependency-free plugin command baseline.
+- Made the exported output constant immutable and covered its property
+  descriptor in the command execution test.
 - Added a static guard for the Windows launcher wrapper entry point.
 
 ## 2026-06-09
@@ -30,6 +34,7 @@
 - Strengthened `npm run test:command` into a command execution test that calls
   `run()` with a mocked oclif base class.
 - Moved the scaffold output text into an exported `OUTPUT_MESSAGE` constant.
+- Made the exported output constant non-writable and non-configurable.
 - Added a static check that preserves the executable launcher mode on `bin/run`.
 - Included packaged launcher files in the npm package file list.
 - Added a static check that preserves oclif metadata for the command topic,

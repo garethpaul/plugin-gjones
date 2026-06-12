@@ -17,6 +17,8 @@ const GATE_ALIASES_PLAN = 'docs/plans/2026-06-09-plugin-gjones-gate-aliases.md';
 const PACKAGE_DESCRIPTION_PLAN = 'docs/plans/2026-06-09-plugin-gjones-package-description.md';
 const WINDOWS_LAUNCHER_PLAN = 'docs/plans/2026-06-10-plugin-gjones-windows-launcher.md';
 const NODE24_TOOLCHAIN_PLAN = 'docs/plans/2026-06-10-plugin-gjones-node24-toolchain.md';
+const IMMUTABLE_OUTPUT_PLAN = 'docs/plans/2026-06-10-plugin-gjones-immutable-output-export.md';
+const HOSTED_VALIDATION_PLAN = 'docs/plans/2026-06-10-hosted-node-validation.md';
 const REQUIRED = [
   '.github/CODEOWNERS',
   '.github/workflows/check.yml',
@@ -44,6 +46,8 @@ const REQUIRED = [
   PACKAGE_DESCRIPTION_PLAN,
   WINDOWS_LAUNCHER_PLAN,
   NODE24_TOOLCHAIN_PLAN,
+  IMMUTABLE_OUTPUT_PLAN,
+  HOSTED_VALIDATION_PLAN,
   'scripts/check-baseline.js',
   'src/commands/gjones/mycommand.js',
   'tests/command-output.test.js'
@@ -152,6 +156,8 @@ function main() {
     "const OUTPUT_MESSAGE = 'Hello World Test!'",
     'class MyCommand extends Command',
     'this.log(OUTPUT_MESSAGE)',
+    "Object.defineProperty(module.exports, 'OUTPUT_MESSAGE'",
+    'enumerable: true',
     'Print a simple plugin scaffold message'
   ]) {
     if (!command.includes(phrase)) {
@@ -170,6 +176,10 @@ function main() {
     'await command.run()',
     "assert.deepStrictEqual(lines, [EXPECTED_OUTPUT])",
     'CommandClass.OUTPUT_MESSAGE',
+    "Object.getOwnPropertyDescriptor(CommandClass, 'OUTPUT_MESSAGE')",
+    'outputDescriptor.writable, false',
+    'outputDescriptor.configurable, false',
+    "CommandClass.OUTPUT_MESSAGE = 'Changed output'",
     'CommandClass.description',
     'this.log(OUTPUT_MESSAGE);',
     "name === '@oclif/command'"
@@ -183,6 +193,7 @@ function main() {
   if (!appveyor.includes('nodejs_version: "24"')) {
     failures.push('appveyor.yml must use the package-supported Node 24 baseline');
   }
+
   const forbiddenCi = ['Invoke-' + 'WebRequest', 'codecov' + '.io', 'bash ' + 'codecov.sh'];
   for (const forbidden of forbiddenCi) {
     if (appveyor.includes(forbidden)) {
@@ -226,6 +237,9 @@ function main() {
   if (workflow.match(/persist-credentials:/g)?.length !== 1) {
     failures.push('GitHub Actions workflow must set checkout credential persistence exactly once');
   }
+  if (workflow.match(/permissions:/g)?.length !== 1 || /^\s+[A-Za-z-]+:\s+write\s*$/m.test(workflow)) {
+    failures.push('GitHub Actions workflow must keep one read-only permissions block');
+  }
   const workflowFiles = fs.readdirSync(path.join(ROOT, '.github/workflows'));
   if (workflowFiles.length !== 1 || workflowFiles[0] !== 'check.yml') {
     failures.push('check.yml must be the repository\'s only hosted workflow');
@@ -252,6 +266,7 @@ function main() {
     'test:command',
     'command execution test',
     'output constant',
+    'immutable output export',
     'command description metadata',
     'package description',
     'credential-free Twilio CLI plugin scaffold',
@@ -261,7 +276,8 @@ function main() {
     'oclif metadata',
     'Node 24',
     'GitHub Actions',
-    'dependency-free baseline'
+    'dependency-free baseline',
+    'hosted Linux'
   ]) {
     if (!docs.toLowerCase().includes(phrase.toLowerCase())) {
       failures.push(`docs must mention ${phrase}`);
@@ -347,6 +363,20 @@ function main() {
   for (const phrase of ['status: completed', 'Node 24', '.nvmrc', 'GitHub Actions', 'make check']) {
     if (!node24ToolchainPlan.includes(phrase)) {
       failures.push(`Node 24 toolchain plan must mention ${phrase}`);
+    }
+  }
+
+  const immutableOutputPlan = read(IMMUTABLE_OUTPUT_PLAN);
+  for (const phrase of ['status: completed', 'Object.defineProperty', 'non-writable', 'npm run test:command']) {
+    if (!immutableOutputPlan.includes(phrase)) {
+      failures.push(`immutable output plan must mention ${phrase}`);
+    }
+  }
+
+  const hostedValidationPlan = read(HOSTED_VALIDATION_PLAN);
+  for (const phrase of ['status: completed', 'Node 24', '.nvmrc', 'make check']) {
+    if (!hostedValidationPlan.includes(phrase)) {
+      failures.push(`hosted validation plan must mention ${phrase}`);
     }
   }
 

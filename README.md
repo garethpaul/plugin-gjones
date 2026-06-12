@@ -62,6 +62,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   scaffold command. It prints `Hello World Test!`.
 - The scaffold output is defined by the exported `OUTPUT_MESSAGE` output
   constant and covered by `npm run test:command`.
+- The immutable output export cannot be reassigned independently of the command
+  implementation.
 - Command description metadata is covered by `npm run test:command` so the
   scaffold help surface stays reviewable.
 - The package description stays aligned with the credential-free Twilio CLI
@@ -87,6 +89,10 @@ Detected npm scripts:
 
 ## Testing and Verification
 
+Pinned, credential-free hosted Linux validation reads Node 24 from `.nvmrc` and
+runs the dependency-free `make check` baseline without installing the unlocked
+legacy oclif/Twilio graph.
+
 - `make check`
 - `make lint`
 - `make build`
@@ -100,9 +106,8 @@ Detected npm scripts:
 `npm run test:command` is a dependency-free command execution test. It evaluates
 `gjones:mycommand` with a mocked oclif `Command`, calls `run()`, and verifies the
 documented scaffold output and command description metadata without requiring
-installed packages.
-GitHub Actions reads `.nvmrc`, uses Node 24, and runs the same dependency-free baseline
-through `make check` on pushes and pull requests.
+installed packages. GitHub Actions reads `.nvmrc`, uses Node 24, and runs the
+same dependency-free baseline through `make check` on pushes and pull requests.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -121,6 +126,7 @@ When the required SDK or runtime is unavailable, use static checks and source re
   static baseline unless the README and security notes explicitly document a
   new Twilio account read or write.
 - Keep the output constant aligned with the documented scaffold output.
+- Keep the immutable output export non-writable and non-configurable.
 - Keep command description metadata covered by the command execution test.
 - Keep the package description aligned with the credential-free Twilio CLI
   plugin scaffold purpose.

@@ -44,6 +44,10 @@ numbers, or customer data unexpectedly.
 
 ## Dependency and Supply Chain Security
 
+Pinned, credential-free, read-only hosted Linux validation runs only the Node
+24 dependency-free static and command-output tests. It does not resolve legacy
+packages or use Twilio credentials.
+
 Dependency updates should come from trusted package managers and should keep lockfiles in sync when lockfiles exist. Do not commit credentials, private keys, tokens, generated secrets, or machine-local configuration. If a vulnerability depends on a compromised package, typosquatting risk, insecure transitive dependency, or unsafe build step, include the package name, affected version, and the path through which it is used.
 
 Run `npm run check`, `npm run lint`, `npm run build`, `make lint`,
@@ -57,6 +61,8 @@ path is added.
 Run `npm run test:command` after command-output changes so the dependency-free
 command execution test continues to cover scaffold behavior without requiring a
 live Twilio profile. Keep the output constant aligned with documented behavior.
+Keep the immutable output export aligned with the command so consumers cannot
+replace public metadata independently of runtime behavior.
 Keep command description metadata covered by the command execution test so the
 help surface remains reviewable.
 Keep `bin/run` as the executable launcher and avoid permission churn in

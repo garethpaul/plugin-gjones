@@ -23,6 +23,9 @@ The current focus is:
 
 Priority:
 
+- Keep the dependency-free command baseline running on pinned hosted Linux with
+  Node 24 from `.nvmrc`
+
 - Preserve the minimal command scaffold
 - Keep oclif and Twilio CLI metadata coherent
 - Avoid adding side effects to the example command
@@ -30,6 +33,7 @@ Priority:
 - Keep generated documentation aligned with command names
 - Keep command execution test coverage dependency-free
 - Keep the scaffold output constant aligned with README behavior
+- Keep the immutable output export aligned with runtime command behavior
 - Keep command description metadata covered by the command execution test
 - Keep the package description aligned with the credential-free scaffold purpose
 - Keep `bin/run` as the executable launcher for Unix installs
