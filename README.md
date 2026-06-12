@@ -20,11 +20,11 @@ This README is based on the checked-in source, manifests, scripts, and repositor
 - `CHANGES.md` - baseline change log
 - `Makefile` - repository-level verification wrapper
 - `README.md` - project overview and local usage notes
-- `package.json` - JavaScript dependency and script metadata
+- `package.json` and `package-lock.json` - reviewed JavaScript dependency and script metadata
 - `bin` - source or example code
 - `SECURITY.md` - security reporting and disclosure guidance
 - `src` - source or example code
-- `tests` - dependency-free command output checks
+- `tests` - dependency-free command output and installed launcher checks
 - `VISION.md` - project direction and maintenance guardrails
 - `docs/plans/2026-06-08-plugin-gjones-baseline.md` - completed baseline plan
 - `scripts/check-baseline.js` - dependency-free static baseline checks
@@ -49,6 +49,7 @@ Additional scan context:
 git clone https://github.com/garethpaul/plugin-gjones.git
 cd plugin-gjones
 nvm use
+npm ci --ignore-scripts
 make check
 ```
 
@@ -79,19 +80,21 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 Detected npm scripts:
 
 - `npm run build` - `npm run check`
-- `npm run postpack` - `rm -f oclif.manifest.json`
-- `npm run prepack` - `oclif-dev manifest && oclif-dev readme`
+- `npm run postpack` - portable generated-manifest cleanup
+- `npm run prepack` - `oclif manifest && oclif readme`
 - `npm run check` - `node scripts/check-baseline.js`
 - `npm run lint` - `npm run check`
-- `npm run test` - `npm run check && npm run test:command`
+- `npm run test` - static, command-output, and installed oclif smoke tests
 - `npm run test:command` - `node tests/command-output.test.js`
-- `npm run version` - `oclif-dev readme && git add README.md`
+- `npm run test:oclif` - `node tests/oclif-command-smoke.test.js`
+- `npm run version` - `oclif readme && git add README.md`
 
 ## Testing and Verification
 
-Pinned, credential-free hosted Linux validation reads Node 24 from `.nvmrc` and
-runs the dependency-free `make check` baseline without installing the unlocked
-legacy oclif/Twilio graph.
+Pinned, credential-free hosted Linux and Windows validation reads Node 24 from
+`.nvmrc`, installs the reviewed lockfile with lifecycle scripts disabled, runs
+the complete test suite, audits the full dependency graph, and validates package
+contents.
 
 - `make check`
 - `make lint`
@@ -102,12 +105,17 @@ legacy oclif/Twilio graph.
 - `npm test`
 - `node scripts/check-baseline.js`
 - `npm run test:command`
+- `npm run test:oclif`
+- `npm audit --audit-level=low`
+- `npm pack --dry-run`
 
-`npm run test:command` is a dependency-free command execution test. It evaluates
+`npm run test:command` remains a dependency-free command execution test. It evaluates
 `gjones:mycommand` with a mocked oclif `Command`, calls `run()`, and verifies the
 documented scaffold output and command description metadata without requiring
-installed packages. GitHub Actions reads `.nvmrc`, uses Node 24, and runs the
-same dependency-free baseline through `make check` on pushes and pull requests.
+installed packages. `npm run test:oclif` verifies installed launcher help and
+`gjones:mycommand` behavior through compatible `@oclif/core` and Twilio CLI
+Core 8.3.4. GitHub Actions runs the locked suite on Ubuntu 24.04 and Windows
+2025 for pushes and pull requests.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -136,8 +144,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - Run `npm run check`, `npm run lint`, `npm run build`, `make lint`,
   `make build`, and `make check` before changing command code, package
   scripts, CI, or Twilio credential handling.
-- Keep `.nvmrc`, `package.json` engines, AppVeyor, and GitHub Actions aligned
-  on the Node 24 toolchain baseline.
+- Keep `.nvmrc`, `package.json` engines, the reviewed lockfile, and GitHub
+  Actions aligned on the Node 24 toolchain baseline.
 - Keep the executable launcher mode on `bin/run` intact when editing packaging
   files.
 - Keep the Windows launcher wrapper pointed at the adjacent Node launcher when

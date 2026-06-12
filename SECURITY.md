@@ -44,9 +44,10 @@ numbers, or customer data unexpectedly.
 
 ## Dependency and Supply Chain Security
 
-Pinned, credential-free, read-only hosted Linux validation runs only the Node
-24 dependency-free static and command-output tests. It does not resolve legacy
-packages or use Twilio credentials.
+Pinned, credential-free, read-only hosted Linux and Windows validation uses the
+reviewed lockfile, disables lifecycle scripts during installation, runs static,
+command-output, and installed launcher tests, audits the full dependency graph,
+and validates package contents without using Twilio credentials.
 
 Dependency updates should come from trusted package managers and should keep lockfiles in sync when lockfiles exist. Do not commit credentials, private keys, tokens, generated secrets, or machine-local configuration. If a vulnerability depends on a compromised package, typosquatting risk, insecure transitive dependency, or unsafe build step, include the package name, affected version, and the path through which it is used.
 
@@ -54,9 +55,10 @@ Run `npm run check`, `npm run lint`, `npm run build`, `make lint`,
 `make build`, and `make check` before changing command behavior, package
 scripts, CI, or credential-adjacent Twilio CLI behavior.
 Node 24 is the local and hosted toolchain baseline. Keep `.nvmrc`,
-`package.json` engines, AppVeyor, and GitHub Actions aligned, and keep the
-hosted workflow on the dependency-free baseline unless a lockfile-backed install
-path is added.
+`package.json` engines, `package-lock.json`, and GitHub Actions aligned. Keep
+`@oclif/core` compatible with Twilio CLI Core 8.3.4, require
+`npm audit --audit-level=low` to remain clean, and do not restore AppVeyor or
+archived direct oclif development tools.
 
 Run `npm run test:command` after command-output changes so the dependency-free
 command execution test continues to cover scaffold behavior without requiring a

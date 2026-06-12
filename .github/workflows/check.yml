@@ -14,7 +14,11 @@ concurrency:
 
 jobs:
   check:
-    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     steps:
       - name: Check out repository
@@ -26,6 +30,16 @@ jobs:
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.1.0
         with:
           node-version-file: .nvmrc
+          cache: npm
 
-      - name: Run dependency-free baseline
-        run: make check
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Audit full dependency graph
+        run: npm audit --audit-level=low
+
+      - name: Run checks
+        run: npm test
+
+      - name: Validate package contents
+        run: npm pack --dry-run

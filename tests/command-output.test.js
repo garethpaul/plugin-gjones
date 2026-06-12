@@ -19,7 +19,7 @@ function loadCommand() {
   const sandbox = {
     module: { exports: {} },
     require(name) {
-      if (name === '@oclif/command') {
+      if (name === '@oclif/core') {
         return { Command: class {} };
       }
       throw new Error(`unexpected require: ${name}`);

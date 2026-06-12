@@ -1,5 +1,13 @@
 # Changes
 
+- Replaced the archived oclif command, launcher, and development toolchain with
+  compatible `@oclif/core` 1.26.2, Twilio CLI Core 8.3.4, and oclif 4.23.14.
+- Added a reviewed lockfile, installed launcher smoke coverage, portable package
+  cleanup, zero-finding full dependency graph auditing, and caller-independent
+  Make targets.
+- Replaced AppVeyor with pinned Ubuntu 24.04 and Windows 2025 GitHub Actions
+  jobs on Node 24 using script-disabled locked installs and package dry runs.
+
 ## 2026-06-10
 
 - Refreshed the stale Node toolchain baseline to Node 24 across `.nvmrc`,
