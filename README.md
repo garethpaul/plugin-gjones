@@ -76,6 +76,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 - Packaged launcher files stay included through the package `files` list.
 - Keep the oclif metadata aligned with the `gjones` command topic, `twilio`
   launcher bin, and `./src/commands` command directory.
+- The installed `gjones` topic help describes the commands as
+  `Credential-free plugin scaffold commands`.
 
 Detected npm scripts:
 

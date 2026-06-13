@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-13
+
+- Replaced the stale `gjones` oclif topic description with the maintained
+  credential-free scaffold wording and added installed-help coverage.
+
 - Replaced the archived oclif command, launcher, and development toolchain with
   compatible `@oclif/core` 1.26.2, Twilio CLI Core 8.3.4, and oclif 4.23.14.
 - Added a reviewed lockfile, installed launcher smoke coverage, portable package

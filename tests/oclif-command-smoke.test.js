@@ -27,6 +27,7 @@ function runCli(args) {
 const help = runCli(['--help']);
 assert.match(help, /Credential-free Twilio CLI plugin scaffold/);
 assert.match(help, /gjones/);
+assert.match(help, /Credential-free plugin scaffold commands/);
 
 const commandOutput = runCli(['gjones:mycommand']);
 assert.strictEqual(commandOutput, 'Hello World Test!\n');

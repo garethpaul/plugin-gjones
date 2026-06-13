@@ -1,6 +1,6 @@
 # Oclif Topic Description Alignment
 
-status: planned
+status: completed
 
 ## Context
 
@@ -51,3 +51,24 @@ metadata despite the maintained scaffold contract.
 - Do not regenerate README command docs or oclif manifests.
 - Do not run live Twilio authentication, API calls, account mutations, or
   publication.
+
+## Work Completed
+
+Aligned the `gjones` oclif topic description with the credential-free scaffold
+purpose and enforced the exact package metadata and installed help output.
+
+## Verification Completed
+
+- Node 24.16.0 completed `npm ci --ignore-scripts` from the exact lockfile.
+- The focused checker, installed oclif smoke test, `npm test`, lint/build, and
+  all Make gates passed.
+- `npm audit --audit-level=low` reported zero known vulnerabilities and
+  `npm pack --dry-run` retained the reviewed six package files.
+- The checker passed from an external working directory; package/lock/workflow
+  metadata and the README SVG parsed successfully.
+- Seven focused hostile mutations rejected stale package metadata, near-miss
+  wording, missing installed help coverage, documentation, status,
+  preservation, and evidence contracts.
+- `command source and dependency paths had no diff`.
+- `git diff --check` passed.
+- The `secret, generated-artifact, and dependency-drift scan` passed.

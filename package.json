@@ -31,7 +31,7 @@
     ],
     "topics": {
       "gjones": {
-        "description": "just my simple plugin"
+        "description": "Credential-free plugin scaffold commands"
       }
     }
   },

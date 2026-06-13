@@ -20,6 +20,7 @@ const NODE24_TOOLCHAIN_PLAN = 'docs/plans/2026-06-10-plugin-gjones-node24-toolch
 const IMMUTABLE_OUTPUT_PLAN = 'docs/plans/2026-06-10-plugin-gjones-immutable-output-export.md';
 const HOSTED_VALIDATION_PLAN = 'docs/plans/2026-06-10-hosted-node-validation.md';
 const OCLIF_TOOLCHAIN_PLAN = 'docs/plans/2026-06-12-plugin-gjones-oclif-toolchain.md';
+const TOPIC_DESCRIPTION_PLAN = 'docs/plans/2026-06-13-oclif-topic-description.md';
 const REQUIRED = [
   '.github/CODEOWNERS',
   '.github/workflows/check.yml',
@@ -50,6 +51,7 @@ const REQUIRED = [
   IMMUTABLE_OUTPUT_PLAN,
   HOSTED_VALIDATION_PLAN,
   OCLIF_TOOLCHAIN_PLAN,
+  TOPIC_DESCRIPTION_PLAN,
   'scripts/check-baseline.js',
   'src/commands/gjones/mycommand.js',
   'tests/command-output.test.js',
@@ -152,8 +154,8 @@ function main() {
   }
   if (!oclif.topics || !oclif.topics.gjones) {
     failures.push('package.json oclif.topics must include gjones');
-  } else if (typeof oclif.topics.gjones.description !== 'string' || !oclif.topics.gjones.description.trim()) {
-    failures.push('package.json oclif.topics.gjones.description must stay populated');
+  } else if (oclif.topics.gjones.description !== 'Credential-free plugin scaffold commands') {
+    failures.push('package.json oclif.topics.gjones.description must match the credential-free scaffold purpose');
   }
 
   if (process.platform !== 'win32') {
@@ -238,7 +240,7 @@ function main() {
     failures.push('bin/run must not restore archived oclif launcher imports');
   }
   const oclifSmokeTest = read('tests/oclif-command-smoke.test.js');
-  for (const phrase of ['spawnSync', "['--help']", "['gjones:mycommand']", "'Hello World Test!\\n'"]) {
+  for (const phrase of ['spawnSync', "['--help']", "['gjones:mycommand']", "'Hello World Test!\\n'", '/Credential-free plugin scaffold commands/']) {
     if (!oclifSmokeTest.includes(phrase)) {
       failures.push(`oclif command smoke test must include ${phrase}`);
     }
@@ -351,6 +353,7 @@ function main() {
     '@oclif/core',
     'Twilio CLI Core 8.3.4',
     'test:oclif'
+    ,'Credential-free plugin scaffold commands'
   ]) {
     if (!docs.toLowerCase().includes(phrase.toLowerCase())) {
       failures.push(`docs must mention ${phrase}`);
@@ -491,6 +494,13 @@ function main() {
   ]) {
     if (!oclifToolchainVerification.includes(evidence)) {
       failures.push(`oclif toolchain migration plan must preserve verification evidence: ${evidence}`);
+    }
+  }
+
+  const topicDescriptionPlan = read(TOPIC_DESCRIPTION_PLAN);
+  for (const phrase of ['status: completed', 'Node 24.16.0', 'npm test', 'hostile mutations rejected', 'command source and dependency paths had no diff', 'git diff --check', 'secret, generated-artifact, and dependency-drift scan']) {
+    if (!topicDescriptionPlan.includes(phrase)) {
+      failures.push(`topic description plan must mention ${phrase}`);
     }
   }
 

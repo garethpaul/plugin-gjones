@@ -29,6 +29,8 @@ Priority:
 
 - Preserve the minimal command scaffold
 - Keep oclif and Twilio CLI metadata coherent
+- Keep the installed `gjones` topic description aligned with the
+  credential-free scaffold purpose
 - Avoid adding side effects to the example command
 - Keep the current command credential-free and free of account mutations
 - Keep generated documentation aligned with command names
@@ -49,7 +51,6 @@ Priority:
 
 Next priorities:
 
-- Fix any stale package metadata or issue links
 - Document supported Twilio CLI versions
 
 Contribution rules:
