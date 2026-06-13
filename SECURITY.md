@@ -60,6 +60,12 @@ Node 24 is the local and hosted toolchain baseline. Keep `.nvmrc`,
 `npm audit --audit-level=low` to remain clean, and do not restore AppVeyor or
 archived direct oclif development tools.
 
+The supported plugin host boundary is Twilio CLI `>=6.0.0 <7.0.0` on Node 24
+or newer. Twilio CLI 5.x and earlier Node runtimes are unsupported. Treat any
+future host-major expansion as a compatibility and security review because the
+plugin runs inside the user's authenticated CLI process. Current tests cover
+CLI Core 8.3.4 without live profiles, credentials, API calls, or account access.
+
 Run `npm run test:command` after command-output changes so the dependency-free
 command execution test continues to cover scaffold behavior without requiring a
 live Twilio profile. Keep the output constant aligned with documented behavior.

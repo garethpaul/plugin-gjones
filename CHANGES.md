@@ -2,6 +2,8 @@
 
 ## 2026-06-13
 
+- Documented Twilio CLI `>=6.0.0 <7.0.0` on Node 24 as the supported plugin
+  host boundary and added an executable CLI Core 8 compatibility contract.
 - Replaced the stale `gjones` oclif topic description with the maintained
   credential-free scaffold wording and added installed-help coverage.
 

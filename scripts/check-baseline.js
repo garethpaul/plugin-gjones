@@ -21,6 +21,7 @@ const IMMUTABLE_OUTPUT_PLAN = 'docs/plans/2026-06-10-plugin-gjones-immutable-out
 const HOSTED_VALIDATION_PLAN = 'docs/plans/2026-06-10-hosted-node-validation.md';
 const OCLIF_TOOLCHAIN_PLAN = 'docs/plans/2026-06-12-plugin-gjones-oclif-toolchain.md';
 const TOPIC_DESCRIPTION_PLAN = 'docs/plans/2026-06-13-oclif-topic-description.md';
+const HOST_COMPATIBILITY_PLAN = 'docs/plans/2026-06-13-twilio-cli-host-compatibility.md';
 const REQUIRED = [
   '.github/CODEOWNERS',
   '.github/workflows/check.yml',
@@ -52,9 +53,11 @@ const REQUIRED = [
   HOSTED_VALIDATION_PLAN,
   OCLIF_TOOLCHAIN_PLAN,
   TOPIC_DESCRIPTION_PLAN,
+  HOST_COMPATIBILITY_PLAN,
   'scripts/check-baseline.js',
   'src/commands/gjones/mycommand.js',
   'tests/command-output.test.js',
+  'tests/twilio-cli-host-compatibility.test.js',
   'tests/oclif-command-smoke.test.js'
 ];
 
@@ -109,8 +112,8 @@ function main() {
   if (lock.lockfileVersion !== 3 || lock.packages?.['']?.dependencies?.['@oclif/core'] !== '^1.26.2' || lock.packages?.['']?.dependencies?.['@twilio/cli-core'] !== '^8.3.4' || lock.packages?.['']?.devDependencies?.oclif !== '^4.23.14') {
     failures.push('package-lock.json must preserve the reviewed lockfileVersion 3 dependency graph');
   }
-  if (pkg.scripts.test !== 'npm run check && npm run test:command && npm run test:oclif') {
-    failures.push('npm test must run the static baseline, command output test, and installed oclif smoke test');
+  if (pkg.scripts.test !== 'npm run check && npm run test:compatibility && npm run test:command && npm run test:oclif') {
+    failures.push('npm test must run the static baseline, host compatibility, command output, and installed oclif smoke tests');
   }
   if (pkg.scripts.lint !== 'npm run check') {
     failures.push('npm run lint must run the static baseline');
@@ -120,6 +123,9 @@ function main() {
   }
   if (pkg.scripts['test:command'] !== 'node tests/command-output.test.js') {
     failures.push('package.json must expose npm run test:command');
+  }
+  if (pkg.scripts['test:compatibility'] !== 'node tests/twilio-cli-host-compatibility.test.js') {
+    failures.push('package.json must expose npm run test:compatibility');
   }
   if (pkg.scripts['test:oclif'] !== 'node tests/oclif-command-smoke.test.js') {
     failures.push('package.json must expose npm run test:oclif');
@@ -178,6 +184,7 @@ function main() {
     'scripts/check-baseline.js',
     'src/commands/gjones/mycommand.js',
     'tests/command-output.test.js',
+    'tests/twilio-cli-host-compatibility.test.js',
     'tests/oclif-command-smoke.test.js'
   ]) {
     try {
@@ -352,11 +359,40 @@ function main() {
     'hosted Linux and Windows',
     '@oclif/core',
     'Twilio CLI Core 8.3.4',
+    'Twilio CLI `>=6.0.0 <7.0.0`',
+    'Twilio CLI 5.x',
+    'test:compatibility',
     'test:oclif'
     ,'Credential-free plugin scaffold commands'
   ]) {
     if (!docs.toLowerCase().includes(phrase.toLowerCase())) {
       failures.push(`docs must mention ${phrase}`);
+    }
+  }
+
+  const hostCompatibilityClaims = {
+    'README.md': 'The supported host line is Twilio CLI `>=6.0.0 <7.0.0`',
+    'SECURITY.md': 'supported plugin host boundary is Twilio CLI `>=6.0.0 <7.0.0`',
+    'VISION.md': 'Keep Twilio CLI `>=6.0.0 <7.0.0` on Node 24',
+    'CHANGES.md': 'Documented Twilio CLI `>=6.0.0 <7.0.0` on Node 24'
+  };
+  for (const [file, phrase] of Object.entries(hostCompatibilityClaims)) {
+    if (!read(file).includes(phrase)) {
+      failures.push(`${file} must include ${phrase}`);
+    }
+  }
+
+  const compatibilityTest = read('tests/twilio-cli-host-compatibility.test.js');
+  for (const phrase of [
+    "pkg.engines.node, '>=24.0.0'",
+    "pkg.dependencies['@twilio/cli-core'], '^8.3.4'",
+    "lock.packages['node_modules/@twilio/cli-core']",
+    "lockedCore.version.split('.')[0]",
+    'process.versions.node',
+    'Twilio CLI host compatibility contract passed.'
+  ]) {
+    if (!compatibilityTest.includes(phrase)) {
+      failures.push(`host compatibility test must include ${phrase}`);
     }
   }
 
@@ -501,6 +537,13 @@ function main() {
   for (const phrase of ['status: completed', 'Node 24.16.0', 'npm test', 'hostile mutations rejected', 'command source and dependency paths had no diff', 'git diff --check', 'secret, generated-artifact, and dependency-drift scan']) {
     if (!topicDescriptionPlan.includes(phrase)) {
       failures.push(`topic description plan must mention ${phrase}`);
+    }
+  }
+
+  const hostCompatibilityPlan = read(HOST_COMPATIBILITY_PLAN);
+  for (const phrase of ['status: completed', 'Twilio CLI `>=6.0.0 <7.0.0`', 'Node 24', 'CLI Core 8.3.4', 'npm run test:compatibility', 'hostile mutations', 'git diff --check']) {
+    if (!hostCompatibilityPlan.includes(phrase)) {
+      failures.push(`Twilio CLI host compatibility plan must mention ${phrase}`);
     }
   }
 

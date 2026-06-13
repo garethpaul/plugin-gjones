@@ -45,7 +45,8 @@
     "lint": "npm run check",
     "postpack": "node -e \"require('fs').rmSync('oclif.manifest.json', {force: true})\"",
     "prepack": "oclif manifest && oclif readme",
-    "test": "npm run check && npm run test:command && npm run test:oclif",
+    "test": "npm run check && npm run test:compatibility && npm run test:command && npm run test:oclif",
+    "test:compatibility": "node tests/twilio-cli-host-compatibility.test.js",
     "test:command": "node tests/command-output.test.js",
     "test:oclif": "node tests/oclif-command-smoke.test.js",
     "version": "oclif readme && git add README.md"

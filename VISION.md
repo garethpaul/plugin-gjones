@@ -48,10 +48,13 @@ Priority:
 - Keep Node 24, `.nvmrc`, the reviewed lockfile, and GitHub Actions aligned
 - Keep `@oclif/core` compatible with Twilio CLI Core 8.3.4 and the full
   dependency graph at zero known vulnerabilities
+- Keep Twilio CLI `>=6.0.0 <7.0.0` on Node 24 as the explicit supported host
+  boundary, with CLI Core 8 compatibility covered without live credentials
 
 Next priorities:
 
-- Document supported Twilio CLI versions
+- Add full Twilio CLI host-installation coverage only when it can remain
+  credential-free and deterministic across hosted Linux and Windows
 
 Contribution rules:
 

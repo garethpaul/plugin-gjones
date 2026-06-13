@@ -42,6 +42,18 @@ Additional scan context:
 
 - Git
 - Node.js 24 or newer and npm
+- Twilio CLI `>=6.0.0 <7.0.0` when loading this package as a plugin
+
+### Supported Twilio CLI Host
+
+The supported host line is Twilio CLI `>=6.0.0 <7.0.0` running on Node 24 or
+newer. Twilio CLI 6 uses CLI Core 8, matching this package's locked Twilio CLI
+Core 8.3.4 integration boundary. Twilio CLI 5.x and Node versions below 24 are
+outside the supported contract.
+
+Repository validation exercises the command and installed launcher through CLI
+Core 8.3.4. It does not install every Twilio CLI 6.x patch or exercise live
+authentication, profiles, API calls, account mutations, or plugin publication.
 
 ### Setup
 
@@ -86,7 +98,9 @@ Detected npm scripts:
 - `npm run prepack` - `oclif manifest && oclif readme`
 - `npm run check` - `node scripts/check-baseline.js`
 - `npm run lint` - `npm run check`
-- `npm run test` - static, command-output, and installed oclif smoke tests
+- `npm run test` - static, host-compatibility, command-output, and installed
+  oclif smoke tests
+- `npm run test:compatibility` - Node and CLI Core host-boundary contract
 - `npm run test:command` - `node tests/command-output.test.js`
 - `npm run test:oclif` - `node tests/oclif-command-smoke.test.js`
 - `npm run version` - `oclif readme && git add README.md`
@@ -107,6 +121,7 @@ contents.
 - `npm test`
 - `node scripts/check-baseline.js`
 - `npm run test:command`
+- `npm run test:compatibility`
 - `npm run test:oclif`
 - `npm audit --audit-level=low`
 - `npm pack --dry-run`

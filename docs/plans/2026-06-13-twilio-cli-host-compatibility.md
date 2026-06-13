@@ -1,6 +1,6 @@
 # Twilio CLI Host Compatibility
 
-status: pending
+status: completed
 
 ## Context
 
@@ -42,8 +42,28 @@ is installed end to end in CI.
 
 ## Work Completed
 
-Pending implementation.
+- Documented Twilio CLI `>=6.0.0 <7.0.0` on Node 24 as the supported plugin
+  host boundary and marked Twilio CLI 5.x and older Node runtimes unsupported.
+- Added a dependency-free compatibility test for the package Node floor, the
+  declared CLI Core 8.3.4 dependency, the locked CLI Core major, and the active
+  Node runtime.
+- Added package-script, test-source, documentation, and completed-plan contracts
+  while preserving dependencies, the lockfile, commands, launchers, and CI.
 
 ## Verification Completed
 
-Pending implementation and validation.
+- npm registry metadata confirmed Twilio CLI 5.23.1 uses CLI Core 7.26.5 and
+  Twilio CLI 6.0.0 through 6.2.4 use CLI Core 8 on Node 20 or newer.
+- Node 24.16.0: `npm run test:compatibility`, the dependency-free command test,
+  and the installed oclif smoke test passed.
+- Node 24.16.0: `npm test`, `npm run lint`, `npm run build`, and all Make gates
+  passed.
+- `npm audit --audit-level=low` reported zero vulnerabilities, and
+  `npm pack --dry-run` contained the expected six files with generated manifest
+  cleanup.
+- Seven focused hostile mutations covering the Node floor, CLI Core dependency
+  and lock major, compatibility test assertions, README range, package test
+  wiring, and plan status were rejected.
+- JavaScript syntax validation, `git diff --check`, generated-artifact and
+  credential scans, and command/dependency/lockfile/launcher/workflow
+  preservation checks passed.
