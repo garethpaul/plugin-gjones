@@ -2,7 +2,7 @@
 'use strict';
 
 const assert = require('assert');
-const { EXPECTED_ADVISORY, validateAuditReport } = require('../scripts/check-audit');
+const { EXPECTED_ADVISORY, auditSpawnOptions, validateAuditReport } = require('../scripts/check-audit');
 
 function reviewedReport() {
   return {
@@ -28,6 +28,8 @@ function reviewedReport() {
 }
 
 assert.deepStrictEqual(validateAuditReport(reviewedReport()), []);
+assert.strictEqual(auditSpawnOptions('win32').shell, true);
+assert.strictEqual(auditSpawnOptions('linux').shell, false);
 
 const newHigh = reviewedReport();
 newHigh.metadata.vulnerabilities.high = 1;

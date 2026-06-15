@@ -329,6 +329,7 @@ function main() {
   const auditPolicy = read('scripts/check-audit.js');
   for (const phrase of [
     "['audit', '--audit-level=low', '--json']",
+    "shell: platform === 'win32'",
     "moderate: 5, high: 0, critical: 0, total: 5",
     "'@oclif/core'",
     "'@oclif/plugin-help'",

@@ -56,12 +56,17 @@ function validateAuditReport(report) {
   return failures;
 }
 
+function auditSpawnOptions(platform = process.platform) {
+  return {
+    encoding: 'utf8',
+    maxBuffer: 10 * 1024 * 1024,
+    shell: platform === 'win32'
+  };
+}
+
 function main() {
   const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-  const result = spawnSync(npm, ['audit', '--audit-level=low', '--json'], {
-    encoding: 'utf8',
-    maxBuffer: 10 * 1024 * 1024
-  });
+  const result = spawnSync(npm, ['audit', '--audit-level=low', '--json'], auditSpawnOptions());
 
   if (result.error) throw result.error;
   if (![0, 1].includes(result.status)) {
@@ -95,4 +100,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { EXPECTED_ADVISORY, validateAuditReport };
+module.exports = { EXPECTED_ADVISORY, auditSpawnOptions, validateAuditReport };

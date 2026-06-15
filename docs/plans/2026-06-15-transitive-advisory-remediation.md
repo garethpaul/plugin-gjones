@@ -88,6 +88,17 @@ automatic major-version fix would break the documented host contract.
   vulnerable lock restoration, workflow bypass, broadened policy acceptance,
   advisory replacement, focused-test removal, missing guidance, and false
   completion.
+- Exact-head push run 27578960034 and pull-request run 27578971115 passed the
+  Ubuntu lane but exposed `spawnSync npm.cmd EINVAL` before policy evaluation
+  on Windows. The audit runner now uses shell dispatch only for the fixed
+  Windows `npm.cmd audit --audit-level=low --json` invocation; focused tests
+  and the static contract require that boundary without changing the accepted
+  report or the protected aggregate check.
+- On Node 24.16.0, the focused audit test, complete repository and
+  external-directory package gates, live strict audit, and
+  `npm pack --dry-run --ignore-scripts` passed after the correction. Isolated
+  runtime and static mutations replacing the Windows guard with unconditional
+  direct spawning were both rejected.
 - `git diff --check` plus exact manifest, lock, secret and generated-artifact audits passed.
 
 ## Upstream Blocker
