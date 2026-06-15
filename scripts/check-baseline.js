@@ -22,6 +22,7 @@ const HOSTED_VALIDATION_PLAN = 'docs/plans/2026-06-10-hosted-node-validation.md'
 const OCLIF_TOOLCHAIN_PLAN = 'docs/plans/2026-06-12-plugin-gjones-oclif-toolchain.md';
 const TOPIC_DESCRIPTION_PLAN = 'docs/plans/2026-06-13-oclif-topic-description.md';
 const HOST_COMPATIBILITY_PLAN = 'docs/plans/2026-06-13-twilio-cli-host-compatibility.md';
+const TRANSITIVE_ADVISORY_PLAN = 'docs/plans/2026-06-15-transitive-advisory-remediation.md';
 const REQUIRED = [
   '.github/CODEOWNERS',
   '.github/workflows/check.yml',
@@ -54,8 +55,11 @@ const REQUIRED = [
   OCLIF_TOOLCHAIN_PLAN,
   TOPIC_DESCRIPTION_PLAN,
   HOST_COMPATIBILITY_PLAN,
+  TRANSITIVE_ADVISORY_PLAN,
+  'scripts/check-audit.js',
   'scripts/check-baseline.js',
   'src/commands/gjones/mycommand.js',
+  'tests/audit-policy.test.js',
   'tests/command-output.test.js',
   'tests/twilio-cli-host-compatibility.test.js',
   'tests/oclif-command-smoke.test.js'
@@ -103,6 +107,9 @@ function main() {
   if (JSON.stringify(pkg.devDependencies) !== JSON.stringify({ oclif: '^4.23.14' })) {
     failures.push('package.json must keep only the maintained oclif utility CLI as a direct development dependency');
   }
+  if (JSON.stringify(pkg.overrides) !== JSON.stringify({ 'form-data': '4.0.6' })) {
+    failures.push('package.json must pin the reviewed form-data advisory override');
+  }
   for (const dependency of ['@oclif/command', '@oclif/config', '@oclif/dev-cli', '@oclif/test', '@twilio/cli-test', 'chai', 'eslint', 'eslint-config-oclif', 'globby', 'mocha', 'nyc']) {
     if (pkg.dependencies?.[dependency] || pkg.devDependencies?.[dependency]) {
       failures.push(`package.json must not restore unused legacy dependency ${dependency}`);
@@ -112,7 +119,10 @@ function main() {
   if (lock.lockfileVersion !== 3 || lock.packages?.['']?.dependencies?.['@oclif/core'] !== '^1.26.2' || lock.packages?.['']?.dependencies?.['@twilio/cli-core'] !== '^8.3.4' || lock.packages?.['']?.devDependencies?.oclif !== '^4.23.14') {
     failures.push('package-lock.json must preserve the reviewed lockfileVersion 3 dependency graph');
   }
-  if (pkg.scripts.test !== 'npm run check && npm run test:compatibility && npm run test:command && npm run test:oclif') {
+  if (lock.packages?.['node_modules/form-data']?.version !== '4.0.6' || lock.packages?.['node_modules/js-yaml']?.version !== '3.14.2') {
+    failures.push('package-lock.json must patch form-data while preserving the compatible oclif js-yaml release');
+  }
+  if (pkg.scripts.test !== 'npm run check && npm run test:audit && npm run test:compatibility && npm run test:command && npm run test:oclif') {
     failures.push('npm test must run the static baseline, host compatibility, command output, and installed oclif smoke tests');
   }
   if (pkg.scripts.lint !== 'npm run check') {
@@ -123,6 +133,9 @@ function main() {
   }
   if (pkg.scripts['test:command'] !== 'node tests/command-output.test.js') {
     failures.push('package.json must expose npm run test:command');
+  }
+  if (pkg.scripts['test:audit'] !== 'node tests/audit-policy.test.js') {
+    failures.push('package.json must expose npm run test:audit');
   }
   if (pkg.scripts['test:compatibility'] !== 'node tests/twilio-cli-host-compatibility.test.js') {
     failures.push('package.json must expose npm run test:compatibility');
@@ -181,8 +194,10 @@ function main() {
   }
 
   for (const jsFile of [
+    'scripts/check-audit.js',
     'scripts/check-baseline.js',
     'src/commands/gjones/mycommand.js',
+    'tests/audit-policy.test.js',
     'tests/command-output.test.js',
     'tests/twilio-cli-host-compatibility.test.js',
     'tests/oclif-command-smoke.test.js'
@@ -284,7 +299,7 @@ function main() {
     'node-version-file: .nvmrc',
     'cache: npm',
     'run: npm ci --ignore-scripts',
-    'run: npm audit --audit-level=low',
+    'run: node scripts/check-audit.js',
     'run: npm test',
     'run: npm pack --dry-run',
     'name: check',
@@ -308,9 +323,21 @@ function main() {
   if (/\bnpm install\b/.test(workflow) || (workflow.match(/npm ci --ignore-scripts/g) || []).length !== 1) {
     failures.push('GitHub Actions must install only from the lockfile with lifecycle scripts disabled');
   }
-  const auditRuns = [...workflow.matchAll(/^\s*run:\s*(npm audit\S*.*)$/gm)].map(match => match[1].trim());
-  if (JSON.stringify(auditRuns) !== JSON.stringify(['npm audit --audit-level=low']) || workflow.includes('npm audit --omit')) {
-    failures.push('GitHub Actions must run exactly one full-graph npm audit at the low-severity threshold');
+  if ((workflow.match(/node scripts\/check-audit\.js/g) || []).length !== 1 || /npm audit|--omit/.test(workflow)) {
+    failures.push('GitHub Actions must run exactly one reviewed full-graph dependency audit policy');
+  }
+  const auditPolicy = read('scripts/check-audit.js');
+  for (const phrase of [
+    "['audit', '--audit-level=low', '--json']",
+    "moderate: 5, high: 0, critical: 0, total: 5",
+    "'@oclif/core'",
+    "'@oclif/plugin-help'",
+    "'@oclif/plugin-plugins'",
+    "'@twilio/cli-core'",
+    "'js-yaml'",
+    'GHSA-h67p-54hq-rp68'
+  ]) {
+    if (!auditPolicy.includes(phrase)) failures.push(`dependency audit policy must keep ${phrase}`);
   }
   if ((workflow.match(/^\s{2}check:\s*$/gm) || []).length !== 1 || (workflow.match(/^\s{4}name:\s*check\s*$/gm) || []).length !== 1) {
     failures.push('GitHub Actions must expose one protected check context after the platform matrix');
@@ -363,7 +390,10 @@ function main() {
     'Twilio CLI 5.x',
     'test:compatibility',
     'test:oclif'
-    ,'Credential-free plugin scaffold commands'
+    ,'Credential-free plugin scaffold commands',
+    'form-data 4.0.6',
+    'js-yaml 3.14.2',
+    'fail-closed JSON policy'
   ]) {
     if (!docs.toLowerCase().includes(phrase.toLowerCase())) {
       failures.push(`docs must mention ${phrase}`);
@@ -544,6 +574,37 @@ function main() {
   for (const phrase of ['status: completed', 'Twilio CLI `>=6.0.0 <7.0.0`', 'Node 24', 'CLI Core 8.3.4', 'npm run test:compatibility', 'hostile mutations', 'git diff --check']) {
     if (!hostCompatibilityPlan.includes(phrase)) {
       failures.push(`Twilio CLI host compatibility plan must mention ${phrase}`);
+    }
+  }
+
+  const transitiveAdvisoryPlan = read(TRANSITIVE_ADVISORY_PLAN);
+  const transitiveAdvisoryStatus = [...transitiveAdvisoryPlan.matchAll(/^status:\s*(.+?)\s*$/gmi)].map(match => match[1]);
+  const transitiveAdvisoryWork = markdownSection(transitiveAdvisoryPlan, 'Work Completed');
+  const transitiveAdvisoryVerification = markdownSection(transitiveAdvisoryPlan, 'Verification Completed');
+  if (transitiveAdvisoryStatus.length !== 1 || transitiveAdvisoryStatus[0] !== 'blocked_upstream' || !transitiveAdvisoryWork) {
+    failures.push('transitive advisory plan must record one upstream-blocked status and completed work');
+  }
+  if (!transitiveAdvisoryVerification || /\b(?:pending|todo|tbd|not run)\b/i.test(transitiveAdvisoryVerification)) {
+    failures.push('transitive advisory plan must record finished verification without pending markers');
+  }
+  for (const evidence of [
+    'form-data 4.0.6',
+    'js-yaml 3.14.2',
+    'safeDump',
+    'npm ci --ignore-scripts',
+    'npm audit --audit-level=low',
+    'node scripts/check-audit.js',
+    'five moderate',
+    'npm test',
+    'make check',
+    'external working directory',
+    'npm pack --dry-run',
+    'hostile mutations',
+    'git diff --check',
+    'secret and generated-artifact audits'
+  ]) {
+    if (!transitiveAdvisoryVerification.includes(evidence)) {
+      failures.push(`transitive advisory verification must mention ${evidence}`);
     }
   }
 

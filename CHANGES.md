@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-15
+
+- Patched the high-severity form-data advisory and kept full hosted audits
+  fail-closed around the exact moderate js-yaml chain blocked upstream.
+
 ## 2026-06-13
 
 - Documented Twilio CLI `>=6.0.0 <7.0.0` on Node 24 as the supported plugin

@@ -49,6 +49,13 @@ reviewed lockfile, disables lifecycle scripts during installation, runs static,
 command-output, and installed launcher tests, audits the full dependency graph,
 and validates package contents without using Twilio credentials.
 
+The reviewed graph pins `form-data 4.0.6` and has zero high or critical
+findings. Five moderate records remain through `js-yaml 3.14.2` because the
+compatible oclif core 1.x host line invokes the removed `safeDump` API. Hosted
+validation uses a fail-closed JSON policy that permits only that exact advisory
+chain and rejects every changed package, count, severity, advisory, malformed
+report, or high/critical finding.
+
 Dependency updates should come from trusted package managers and should keep lockfiles in sync when lockfiles exist. Do not commit credentials, private keys, tokens, generated secrets, or machine-local configuration. If a vulnerability depends on a compromised package, typosquatting risk, insecure transitive dependency, or unsafe build step, include the package name, affected version, and the path through which it is used.
 
 Run `npm run check`, `npm run lint`, `npm run build`, `make lint`,
@@ -56,9 +63,9 @@ Run `npm run check`, `npm run lint`, `npm run build`, `make lint`,
 scripts, CI, or credential-adjacent Twilio CLI behavior.
 Node 24 is the local and hosted toolchain baseline. Keep `.nvmrc`,
 `package.json` engines, `package-lock.json`, and GitHub Actions aligned. Keep
-`@oclif/core` compatible with Twilio CLI Core 8.3.4, require
-`npm audit --audit-level=low` to remain clean, and do not restore AppVeyor or
-archived direct oclif development tools.
+`@oclif/core` compatible with Twilio CLI Core 8.3.4, keep the full low-threshold
+audit constrained to the exact reviewed upstream blocker, and do not restore
+AppVeyor or archived direct oclif development tools.
 
 The supported plugin host boundary is Twilio CLI `>=6.0.0 <7.0.0` on Node 24
 or newer. Twilio CLI 5.x and earlier Node runtimes are unsupported. Treat any

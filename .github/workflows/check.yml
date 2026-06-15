@@ -37,7 +37,7 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Audit full dependency graph
-        run: npm audit --audit-level=low
+        run: node scripts/check-audit.js
 
       - name: Run checks
         run: npm test
