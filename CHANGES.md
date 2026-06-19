@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-06-19
+
+- Pinned transitive `undici` to 6.27.0 to remove the newly disclosed request
+  smuggling and unbounded decompression advisories without changing the Twilio
+  CLI compatibility boundary.
+
 ## 2026-06-15
 
 - Patched the high-severity form-data advisory and kept full hosted audits

@@ -107,8 +107,8 @@ function main() {
   if (JSON.stringify(pkg.devDependencies) !== JSON.stringify({ oclif: '^4.23.14' })) {
     failures.push('package.json must keep only the maintained oclif utility CLI as a direct development dependency');
   }
-  if (JSON.stringify(pkg.overrides) !== JSON.stringify({ 'form-data': '4.0.6' })) {
-    failures.push('package.json must pin the reviewed form-data advisory override');
+  if (JSON.stringify(pkg.overrides) !== JSON.stringify({ 'form-data': '4.0.6', undici: '6.27.0' })) {
+    failures.push('package.json must pin the reviewed form-data and undici advisory overrides');
   }
   for (const dependency of ['@oclif/command', '@oclif/config', '@oclif/dev-cli', '@oclif/test', '@twilio/cli-test', 'chai', 'eslint', 'eslint-config-oclif', 'globby', 'mocha', 'nyc']) {
     if (pkg.dependencies?.[dependency] || pkg.devDependencies?.[dependency]) {
@@ -119,8 +119,8 @@ function main() {
   if (lock.lockfileVersion !== 3 || lock.packages?.['']?.dependencies?.['@oclif/core'] !== '^1.26.2' || lock.packages?.['']?.dependencies?.['@twilio/cli-core'] !== '^8.3.4' || lock.packages?.['']?.devDependencies?.oclif !== '^4.23.14') {
     failures.push('package-lock.json must preserve the reviewed lockfileVersion 3 dependency graph');
   }
-  if (lock.packages?.['node_modules/form-data']?.version !== '4.0.6' || lock.packages?.['node_modules/js-yaml']?.version !== '3.14.2') {
-    failures.push('package-lock.json must patch form-data while preserving the compatible oclif js-yaml release');
+  if (lock.packages?.['node_modules/form-data']?.version !== '4.0.6' || lock.packages?.['node_modules/undici']?.version !== '6.27.0' || lock.packages?.['node_modules/js-yaml']?.version !== '3.14.2') {
+    failures.push('package-lock.json must patch form-data and undici while preserving the compatible oclif js-yaml release');
   }
   if (pkg.scripts.test !== 'npm run check && npm run test:audit && npm run test:compatibility && npm run test:command && npm run test:oclif') {
     failures.push('npm test must run the static baseline, host compatibility, command output, and installed oclif smoke tests');
@@ -393,6 +393,7 @@ function main() {
     'test:oclif'
     ,'Credential-free plugin scaffold commands',
     'form-data 4.0.6',
+    'undici 6.27.0',
     'js-yaml 3.14.2',
     'fail-closed JSON policy'
   ]) {
@@ -590,6 +591,7 @@ function main() {
   }
   for (const evidence of [
     'form-data 4.0.6',
+    'undici 6.27.0',
     'js-yaml 3.14.2',
     'safeDump',
     'npm ci --ignore-scripts',

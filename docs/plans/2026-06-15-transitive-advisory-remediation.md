@@ -10,6 +10,11 @@ The reviewed lock now reports a high-severity `form-data@4.0.5` finding
 oclif core 1.x host line invokes `safeDump`, which js-yaml 4 removes, so the
 automatic major-version fix would break the documented host contract.
 
+On 2026-06-19, a fresh exact-head audit also reported newly disclosed high and
+moderate findings in transitive `undici@6.26.0`. The compatible patched release
+is `undici 6.27.0`, so that finding can be removed without changing the host
+contract or the accepted audit-policy boundary.
+
 ## Requirements
 
 - Resolve the high-severity form-data finding without changing direct Twilio
@@ -60,8 +65,10 @@ automatic major-version fix would break the documented host contract.
 
 - Added an exact root override for `form-data 4.0.6` while preserving direct
   Twilio CLI Core 8.3.4 and oclif core 1.26.2 host versions.
+- Added an exact root override for `undici 6.27.0` after the advisory database
+  began reporting high and moderate findings for the locked 6.26.0 release.
 - Regenerated the lock and required patched form-data plus compatible
-  `js-yaml 3.14.2` in the static baseline.
+  `undici 6.27.0` and `js-yaml 3.14.2` in the static baseline.
 - Added a cross-platform audit-policy gate that accepts only the exact five
   moderate records tied to GHSA-h67p-54hq-rp68 and rejects any changed package,
   count, severity, advisory chain, malformed output, or high/critical finding.
@@ -74,7 +81,7 @@ automatic major-version fix would break the documented host contract.
 - `npm audit --audit-level=low` confirms the high form-data finding is closed
   and reports five moderate js-yaml findings that remain blocked upstream.
 - Installed-path inspection confirmed patched `form-data 4.0.6` and compatible
-  `js-yaml 3.14.2` in the exact lock and installed graph.
+  `undici 6.27.0` and `js-yaml 3.14.2` in the exact lock and installed graph.
 - `node scripts/check-audit.js` passed against that exact report; the focused
   audit test rejected new-high, changed-advisory, additional inherited
   advisory, and missing-package reports.
