@@ -624,7 +624,7 @@ function main() {
 
   const deepReviewPlan = read(DEEP_REVIEW_PLAN);
   for (const phrase of [
-    'status: implementation-complete',
+    'status: completed',
     'PR #1',
     'PR #2',
     'PR #3',

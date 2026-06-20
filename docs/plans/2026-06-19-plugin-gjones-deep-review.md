@@ -1,6 +1,6 @@
 # Plugin Gjones Deep Review
 
-status: implementation-complete
+status: completed
 
 ## Scope
 
@@ -37,8 +37,17 @@ not publish the plugin.
 - The packed consumer audit reported six moderate findings in the exact oclif
   1.x / Twilio CLI Core 8 / js-yaml chain.
 
-## Remaining verification
+## Hosted verification completed
 
-Hosted validation will supply clean npm installation, root and packed consumer
-audits, multi-Node execution, Windows launcher coverage, packaging, and CodeQL
-evidence before merge.
+- Push run `27859974406` and pull-request run `27859977017` passed clean locked
+  installs, root audits, the complete test suite, package dry runs, Linux Node
+  20/22/24, Windows Node 24, packed consumer install/audit, and both protected
+  aggregate `check` jobs.
+- CodeQL run `27859977482` passed Actions and JavaScript/TypeScript analysis on
+  reviewed head `865bf2300a5c731d4fd8afb5738f29d9ea56973a`.
+- Redacted Gitleaks scans found zero current-tree findings and zero findings
+  across all 43 commits. GitHub CodeQL, secret-scanning, and Dependabot open
+  alert counts were zero.
+- Six hostile mutations were killed for argv rejection, engine support,
+  advisory-path validation, consumer counts, the Node 20 lane, and packed-size
+  enforcement.
