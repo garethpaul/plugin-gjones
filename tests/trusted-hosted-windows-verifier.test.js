@@ -9,8 +9,12 @@ const root = path.resolve(__dirname, '..');
 const workflowPath = path.join(root, '.github/workflows/trusted-hosted-windows-path-policy.yml');
 const verifierPath = path.join(root, '.github/trusted/verify-hosted-windows-path-policy.js');
 
-const workflow = fs.readFileSync(workflowPath, 'utf8');
-const verifier = fs.readFileSync(verifierPath, 'utf8');
+function readNormalized(filePath) {
+  return fs.readFileSync(filePath, 'utf8').replace(/\r\n/g, '\n');
+}
+
+const workflow = readNormalized(workflowPath);
+const verifier = readNormalized(verifierPath);
 
 assert.match(workflow, /^on:\n  pull_request_target:/m);
 assert.match(workflow, /^permissions:\n  contents: read\n  pull-requests: read$/m);
