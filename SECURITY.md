@@ -49,14 +49,15 @@ reviewed lockfile, disables lifecycle scripts during installation, runs static,
 command-output, and installed launcher tests, audits the full dependency graph,
 and validates package contents without using Twilio credentials.
 
-The reviewed graph resolves `form-data 4.0.6` and `undici 6.27.0`. Compatible
-Twilio CLI Core 8 and oclif core 1.x still install `js-yaml 3.14.2`, affected by
-`GHSA-h67p-54hq-rp68`. npm package-level overrides do not protect downstream
-consumers, so hosted validation performs a packed consumer audit. Its
-fail-closed JSON policy accepts only the exact five-package upstream chain in
-the repository audit and the corresponding six-package consumer chain; every
-new package, path, advisory, severity, inconsistent count, or malformed report
-fails validation.
+The reviewed graph pins `form-data 4.0.6`, `undici 6.27.0`, and
+`js-yaml 4.2.0`. A launcher preload maps the removed `safeLoad` and `safeDump`
+aliases to js-yaml 4's safe-by-default `load` and `dump` APIs before the
+compatible oclif core 1.x host starts. Hosted validation uses a fail-closed JSON
+policy that requires zero known vulnerabilities across the repository's full
+dependency graph. The packed consumer audit separately permits only the exact
+moderate js-yaml advisory chain inherited from Twilio CLI Core 8.3.4 and rejects
+new packages, paths, severities, inconsistent counts, or malformed reports. npm
+does not apply dependency-package overrides to downstream installations.
 
 Dependency updates should come from trusted package managers and should keep lockfiles in sync when lockfiles exist. Do not commit credentials, private keys, tokens, generated secrets, or machine-local configuration. If a vulnerability depends on a compromised package, typosquatting risk, insecure transitive dependency, or unsafe build step, include the package name, affected version, and the path through which it is used.
 
@@ -66,8 +67,9 @@ scripts, CI, or credential-adjacent Twilio CLI behavior.
 Node 24 is the default local toolchain in `.nvmrc`; the supported runtime matrix
 is Node 20, 22, and 24. Keep `package.json` engines, `package-lock.json`, and
 GitHub Actions aligned. Keep `@oclif/core` compatible with Twilio CLI Core
-8.3.4, keep the low-threshold audit pinned to the reviewed upstream advisory
-boundary, and do not restore AppVeyor or archived direct oclif tools.
+8.3.4, keep the low-threshold root audit at zero and the packed-consumer audit
+pinned to the reviewed upstream boundary, and do not restore AppVeyor or archived
+direct oclif tools.
 
 The supported plugin host boundary is Twilio CLI `>=6.0.0 <7.0.0` on Node 20, 22, and 24.
 Twilio CLI 5.x and earlier Node runtimes are unsupported. Treat any

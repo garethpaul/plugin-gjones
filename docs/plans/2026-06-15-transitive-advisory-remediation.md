@@ -2,9 +2,8 @@
 
 status: completed
 
-> Superseded by the 2026-06-19 deep review: a packed consumer install proved
-> that npm ignores dependency-package overrides, so the zero-advisory claim and
-> launcher shim did not describe downstream installations.
+The 2026-06-20 post-consolidation repair keeps the deep review's packed
+consumer audit while restoring the patched root graph and compatibility preload.
 
 ## Context
 
@@ -23,10 +22,10 @@ contract or the accepted audit-policy boundary.
 
 - Resolve the high-severity form-data finding without changing direct Twilio
   or oclif host versions.
-- Keep a full-graph audit at the low-severity threshold and fail closed unless
-  the report contains zero known vulnerabilities.
-- Reject every vulnerable package, inconsistent count, nonzero severity, and
-  malformed output.
+- Keep the repository's full-graph audit at the low-severity threshold and fail
+  closed unless the report contains zero known vulnerabilities.
+- Reject every root vulnerable package and any consumer package, path,
+  severity, or count outside the exact reviewed upstream chain.
 - Preserve Node 24, Linux/Windows, aggregate-check, package, command, launcher,
   and external-directory validation.
 - Record completed work, actual verification, and the remaining upstream risk.
@@ -46,8 +45,9 @@ contract or the accepted audit-policy boundary.
 
 - Do not change command output, CLI metadata, launchers, supported Twilio CLI
   host versions, or direct dependency majors.
-- Do not use `npm audit fix --force`, hide audit output, omit dependency groups,
-  or accept any advisory class.
+- Do not use `npm audit fix --force`, hide audit output, or omit dependency
+  groups. The packed-consumer check may accept only the exact upstream advisory
+  chain that npm re-resolves outside this package's root override.
 
 ## Verification
 
@@ -79,8 +79,13 @@ contract or the accepted audit-policy boundary.
   safe-by-default `load` and `dump` APIs before oclif starts, preserving the
   supported Twilio CLI host behavior.
 - Replaced the advisory allowance with a cross-platform fail-closed JSON policy
-  that accepts only zero known vulnerabilities and rejects vulnerable packages,
-  inconsistent counts, nonzero severities, and malformed output.
+  that accepts only zero known vulnerabilities in the repository graph and
+  rejects vulnerable packages, inconsistent counts, nonzero severities, and
+  malformed output.
+- Kept the packed-consumer audit pinned to the exact moderate js-yaml chain that
+  Twilio CLI Core 8.3.4 currently inherits. npm ignores dependency-package
+  overrides during downstream installation, so any changed package, path,
+  severity, or count fails closed.
 - Added focused report mutations, hosted workflow enforcement, completed-plan
   enforcement, dependency-risk guidance, and changelog evidence.
 
@@ -90,6 +95,8 @@ contract or the accepted audit-policy boundary.
 - `npm audit --audit-level=low` and `node scripts/check-audit.js` reported
   zero known vulnerabilities across production dependencies and development
   tooling.
+- `npm run audit:consumer` reproduced only the reviewed six-package moderate
+  inheritance chain for GHSA-h67p-54hq-rp68 from the packed artifact.
 - Installed-path inspection confirmed patched `form-data 4.0.6`,
   `undici 6.27.0`, and one `js-yaml 4.2.0` copy in the exact lock and installed
   graph.

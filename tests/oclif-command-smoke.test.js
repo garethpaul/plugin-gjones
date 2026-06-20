@@ -7,6 +7,12 @@ const { spawnSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
 const RUN = path.join(ROOT, 'bin', 'run');
+const yaml = require('../src/js-yaml-compat');
+
+assert.strictEqual(yaml.safeLoad, yaml.load);
+assert.strictEqual(yaml.safeDump, yaml.dump);
+assert.strictEqual(yaml.safeLoad('enabled: true').enabled, true);
+assert.match(yaml.safeDump({ enabled: true }), /enabled: true/);
 
 function runCli(args) {
   const result = spawnSync(process.execPath, [RUN, ...args], {
