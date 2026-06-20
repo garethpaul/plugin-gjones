@@ -94,6 +94,10 @@ function main() {
     if (!fs.existsSync(`${ROOT}${path.sep}${file}`)) failures.push(`required file missing: ${file}`);
   }
 
+  if (!read('Makefile').includes('override ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))')) {
+    failures.push('Makefile must protect the repository root from caller overrides');
+  }
+
   const pkg = JSON.parse(read('package.json'));
   const lock = JSON.parse(read('package-lock.json'));
   if (pkg.description !== 'Credential-free Twilio CLI plugin scaffold') {
