@@ -49,27 +49,28 @@ reviewed lockfile, disables lifecycle scripts during installation, runs static,
 command-output, and installed launcher tests, audits the full dependency graph,
 and validates package contents without using Twilio credentials.
 
-The reviewed graph pins `form-data 4.0.6`, `undici 6.27.0`, and
-`js-yaml 4.2.0`. A launcher preload maps the removed `safeLoad` and `safeDump`
-aliases to js-yaml 4's safe-by-default `load` and `dump` APIs before the
-compatible oclif core 1.x host starts. Hosted validation uses a fail-closed JSON
-policy that requires zero known vulnerabilities across production dependencies
-and development tooling and rejects every package finding, inconsistent count,
-malformed report, or nonzero severity.
+The reviewed graph resolves `form-data 4.0.6` and `undici 6.27.0`. Compatible
+Twilio CLI Core 8 and oclif core 1.x still install `js-yaml 3.14.2`, affected by
+`GHSA-h67p-54hq-rp68`. npm package-level overrides do not protect downstream
+consumers, so hosted validation performs a packed consumer audit. Its
+fail-closed JSON policy accepts only the exact five-package upstream chain in
+the repository audit and the corresponding six-package consumer chain; every
+new package, path, advisory, severity, inconsistent count, or malformed report
+fails validation.
 
 Dependency updates should come from trusted package managers and should keep lockfiles in sync when lockfiles exist. Do not commit credentials, private keys, tokens, generated secrets, or machine-local configuration. If a vulnerability depends on a compromised package, typosquatting risk, insecure transitive dependency, or unsafe build step, include the package name, affected version, and the path through which it is used.
 
 Run `npm run check`, `npm run lint`, `npm run build`, `make lint`,
 `make build`, and `make check` before changing command behavior, package
 scripts, CI, or credential-adjacent Twilio CLI behavior.
-Node 24 is the local and hosted toolchain baseline. Keep `.nvmrc`,
-`package.json` engines, `package-lock.json`, and GitHub Actions aligned. Keep
-`@oclif/core` compatible with Twilio CLI Core 8.3.4, keep the full low-threshold
-audit at zero findings, and do not restore AppVeyor or archived direct oclif
-development tools.
+Node 24 is the default local toolchain in `.nvmrc`; the supported runtime matrix
+is Node 20, 22, and 24. Keep `package.json` engines, `package-lock.json`, and
+GitHub Actions aligned. Keep `@oclif/core` compatible with Twilio CLI Core
+8.3.4, keep the low-threshold audit pinned to the reviewed upstream advisory
+boundary, and do not restore AppVeyor or archived direct oclif tools.
 
-The supported plugin host boundary is Twilio CLI `>=6.0.0 <7.0.0` on Node 24
-or newer. Twilio CLI 5.x and earlier Node runtimes are unsupported. Treat any
+The supported plugin host boundary is Twilio CLI `>=6.0.0 <7.0.0` on Node 20, 22, and 24.
+Twilio CLI 5.x and earlier Node runtimes are unsupported. Treat any
 future host-major expansion as a compatibility and security review because the
 plugin runs inside the user's authenticated CLI process. Current tests cover
 CLI Core 8.3.4 without live profiles, credentials, API calls, or account access.
@@ -77,6 +78,8 @@ CLI Core 8.3.4 without live profiles, credentials, API calls, or account access.
 Run `npm run test:command` after command-output changes so the dependency-free
 command execution test continues to cover scaffold behavior without requiring a
 live Twilio profile. Keep the output constant aligned with documented behavior.
+Unexpected arguments and flags must fail with a generic message that does not
+echo credential-like input.
 Keep the immutable output export aligned with the command so consumers cannot
 replace public metadata independently of runtime behavior.
 Keep command description metadata covered by the command execution test so the

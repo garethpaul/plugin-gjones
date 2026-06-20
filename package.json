@@ -9,12 +9,7 @@
     "@twilio/cli-core": "^8.3.4"
   },
   "engines": {
-    "node": ">=24.0.0"
-  },
-  "overrides": {
-    "form-data": "4.0.6",
-    "js-yaml": "4.2.0",
-    "undici": "6.27.0"
+    "node": ">=20.0.0"
   },
   "files": [
     "/bin",
@@ -50,8 +45,10 @@
     "lint": "npm run check",
     "postpack": "node -e \"require('fs').rmSync('oclif.manifest.json', {force: true})\"",
     "prepack": "oclif manifest && oclif readme",
-    "test": "npm run check && npm run test:audit && npm run test:compatibility && npm run test:command && npm run test:oclif",
+    "test": "npm run check && npm run test:audit && npm run test:consumer && npm run test:compatibility && npm run test:command && npm run test:oclif",
+    "audit:consumer": "node scripts/check-consumer-audit.js",
     "test:audit": "node tests/audit-policy.test.js",
+    "test:consumer": "node tests/consumer-audit.test.js",
     "test:compatibility": "node tests/twilio-cli-host-compatibility.test.js",
     "test:command": "node tests/command-output.test.js",
     "test:oclif": "node tests/oclif-command-smoke.test.js",

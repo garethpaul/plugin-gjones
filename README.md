@@ -41,14 +41,14 @@ Additional scan context:
 ### Prerequisites
 
 - Git
-- Node.js 24 or newer and npm
+- Node.js 20, 22, or 24 and npm; Node 24 remains the default in `.nvmrc`
 - Twilio CLI `>=6.0.0 <7.0.0` when loading this package as a plugin
 
 ### Supported Twilio CLI Host
 
-The supported host line is Twilio CLI `>=6.0.0 <7.0.0` running on Node 24 or
-newer. Twilio CLI 6 uses CLI Core 8, matching this package's locked Twilio CLI
-Core 8.3.4 integration boundary. Twilio CLI 5.x and Node versions below 24 are
+The supported host line is Twilio CLI `>=6.0.0 <7.0.0` on Node 20, 22, and 24.
+Twilio CLI 6 uses CLI Core 8, matching this package's locked Twilio CLI Core
+8.3.4 integration boundary. Twilio CLI 5.x and Node versions below 20 are
 outside the supported contract.
 
 Repository validation exercises the command and installed launcher through CLI
@@ -100,6 +100,8 @@ Detected npm scripts:
 - `npm run lint` - `npm run check`
 - `npm run test` - static, host-compatibility, command-output, and installed
   oclif smoke tests
+- `npm run audit:consumer` - pack, install, and audit the consumer artifact
+- `npm run test:consumer` - dependency-free consumer-audit helper tests
 - `npm run test:compatibility` - Node and CLI Core host-boundary contract
 - `npm run test:command` - `node tests/command-output.test.js`
 - `npm run test:oclif` - `node tests/oclif-command-smoke.test.js`
@@ -107,12 +109,15 @@ Detected npm scripts:
 
 ## Testing and Verification
 
-Pinned, credential-free hosted Linux and Windows validation reads Node 24 from
-`.nvmrc`, installs the reviewed lockfile with lifecycle scripts disabled, runs
-the complete test suite, audits the full dependency graph, and validates package
-contents. The reviewed graph pins `form-data 4.0.6`, `undici 6.27.0`, and
-`js-yaml 4.2.0`; its fail-closed JSON policy requires zero known
-vulnerabilities across production dependencies and development tooling.
+Pinned, credential-free hosted validation runs Node 20, 22, and 24 on Linux and
+Node 24 on Windows. It installs the reviewed lockfile with lifecycle scripts
+disabled, runs the complete test suite, audits the repository graph, validates
+package contents, and performs a packed consumer audit. The graph resolves
+`form-data 4.0.6` and `undici 6.27.0`. Twilio CLI Core's compatible oclif 1.x
+line still installs `js-yaml 3.14.2`, which is affected by
+`GHSA-h67p-54hq-rp68`; the fail-closed JSON policy accepts only that exact
+moderate upstream chain and rejects every new package, path, advisory, or
+severity.
 
 - `make check`
 - `make lint`
@@ -125,6 +130,7 @@ vulnerabilities across production dependencies and development tooling.
 - `npm run test:command`
 - `npm run test:compatibility`
 - `npm run test:oclif`
+- `npm run audit:consumer`
 - `npm audit --audit-level=low`
 - `npm pack --dry-run`
 
@@ -134,7 +140,9 @@ documented scaffold output and command description metadata without requiring
 installed packages. `npm run test:oclif` verifies installed launcher help and
 `gjones:mycommand` behavior through compatible `@oclif/core` and Twilio CLI
 Core 8.3.4. GitHub Actions runs the locked suite on Ubuntu 24.04 and Windows
-2025 for pushes and pull requests.
+2025 for pushes and pull requests. The command rejects unexpected argv with a
+generic error so credential-like values are neither accepted nor reflected in
+plugin output.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 

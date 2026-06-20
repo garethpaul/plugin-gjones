@@ -2,6 +2,10 @@
 
 status: completed
 
+> Superseded by the 2026-06-19 deep review: a packed consumer install proved
+> that npm ignores dependency-package overrides, so the zero-advisory claim and
+> launcher shim did not describe downstream installations.
+
 ## Context
 
 The original reviewed lock reported a high-severity `form-data@4.0.5` finding

@@ -1,11 +1,24 @@
 # Changes
 
+## 2026-06-19 deep review
+
+- Documented Twilio CLI `>=6.0.0 <7.0.0` on Node 20, 22, and 24 as the supported
+  plugin host boundary while retaining Node 24 as the `.nvmrc` default.
+- Rejected unexpected argv without echoing credential-like values.
+- Removed root-only npm overrides and the ineffective js-yaml launcher shim;
+  added a packed consumer audit that fail-closes around the exact
+  `GHSA-h67p-54hq-rp68` upstream chain.
+- Kept `form-data 4.0.6` and `undici 6.27.0` in the reviewed lock and added
+  multi-Node hosted gates without live Twilio calls or plugin publishing.
+
 ## 2026-06-20
 
 - Pinned transitive `js-yaml` to 4.2.0 and preloaded the safe-by-default
   `load`/`dump` APIs under the legacy oclif `safeLoad`/`safeDump` aliases.
 - Replaced the reviewed advisory allowance with a fail-closed audit policy that
   requires zero known vulnerabilities across the complete dependency graph.
+- Superseded by the 2026-06-19 deep review after a packed consumer install
+  proved npm ignores dependency-package overrides.
 
 ## 2026-06-19
 
