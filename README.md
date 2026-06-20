@@ -20,11 +20,11 @@ This README is based on the checked-in source, manifests, scripts, and repositor
 - `CHANGES.md` - baseline change log
 - `Makefile` - repository-level verification wrapper
 - `README.md` - project overview and local usage notes
-- `package.json` - JavaScript dependency and script metadata
+- `package.json` and `package-lock.json` - reviewed JavaScript dependency and script metadata
 - `bin` - source or example code
 - `SECURITY.md` - security reporting and disclosure guidance
 - `src` - source or example code
-- `tests` - dependency-free command output checks
+- `tests` - dependency-free command output and installed launcher checks
 - `VISION.md` - project direction and maintenance guardrails
 - `docs/plans/2026-06-08-plugin-gjones-baseline.md` - completed baseline plan
 - `scripts/check-baseline.js` - dependency-free static baseline checks
@@ -41,14 +41,28 @@ Additional scan context:
 ### Prerequisites
 
 - Git
-- Node.js and npm
+- Node.js 20, 22, or 24 and npm; Node 24 remains the default in `.nvmrc`
+- Twilio CLI `>=6.0.0 <7.0.0` when loading this package as a plugin
+
+### Supported Twilio CLI Host
+
+The supported host line is Twilio CLI `>=6.0.0 <7.0.0` on Node 20, 22, and 24.
+Twilio CLI 6 uses CLI Core 8, matching this package's locked Twilio CLI Core
+8.3.4 integration boundary. Twilio CLI 5.x and Node versions below 20 are
+outside the supported contract.
+
+Repository validation exercises the command and installed launcher through CLI
+Core 8.3.4. It does not install every Twilio CLI 6.x patch or exercise live
+authentication, profiles, API calls, account mutations, or plugin publication.
 
 ### Setup
 
 ```bash
 git clone https://github.com/garethpaul/plugin-gjones.git
 cd plugin-gjones
-npm install
+nvm use
+npm ci --ignore-scripts
+make check
 ```
 
 The setup commands above are derived from repository files. Legacy mobile, Python, or JavaScript samples may require older SDKs or package versions than a modern workstation uses by default.
@@ -74,22 +88,36 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 - Packaged launcher files stay included through the package `files` list.
 - Keep the oclif metadata aligned with the `gjones` command topic, `twilio`
   launcher bin, and `./src/commands` command directory.
+- The installed `gjones` topic help describes the commands as
+  `Credential-free plugin scaffold commands`.
 
 Detected npm scripts:
 
 - `npm run build` - `npm run check`
-- `npm run postpack` - `rm -f oclif.manifest.json`
-- `npm run prepack` - `oclif-dev manifest && oclif-dev readme`
+- `npm run postpack` - portable generated-manifest cleanup
+- `npm run prepack` - `oclif manifest && oclif readme`
 - `npm run check` - `node scripts/check-baseline.js`
 - `npm run lint` - `npm run check`
-- `npm run test` - `npm run check && npm run test:command`
+- `npm run test` - static, host-compatibility, command-output, and installed
+  oclif smoke tests
+- `npm run audit:consumer` - pack, install, and audit the consumer artifact
+- `npm run test:consumer` - dependency-free consumer-audit helper tests
+- `npm run test:compatibility` - Node and CLI Core host-boundary contract
 - `npm run test:command` - `node tests/command-output.test.js`
-- `npm run version` - `oclif-dev readme && git add README.md`
+- `npm run test:oclif` - `node tests/oclif-command-smoke.test.js`
+- `npm run version` - `oclif readme && git add README.md`
 
 ## Testing and Verification
 
-Pinned hosted Linux validation runs the dependency-free `npm test` baseline on
-Node 18 and Node 22 without installing the unlocked legacy oclif/Twilio graph.
+Pinned, credential-free hosted validation runs Node 20, 22, and 24 on Linux and
+Node 24 on Windows. It installs the reviewed lockfile with lifecycle scripts
+disabled, runs the complete test suite, audits the repository graph, validates
+package contents, and performs a packed consumer audit. The graph resolves
+`form-data 4.0.6` and `undici 6.27.0`. Twilio CLI Core's compatible oclif 1.x
+line still installs `js-yaml 3.14.2`, which is affected by
+`GHSA-h67p-54hq-rp68`; the fail-closed JSON policy accepts only that exact
+moderate upstream chain and rejects every new package, path, advisory, or
+severity.
 
 - `make check`
 - `make lint`
@@ -100,11 +128,21 @@ Node 18 and Node 22 without installing the unlocked legacy oclif/Twilio graph.
 - `npm test`
 - `node scripts/check-baseline.js`
 - `npm run test:command`
+- `npm run test:compatibility`
+- `npm run test:oclif`
+- `npm run audit:consumer`
+- `npm audit --audit-level=low`
+- `npm pack --dry-run`
 
-`npm run test:command` is a dependency-free command execution test. It evaluates
+`npm run test:command` remains a dependency-free command execution test. It evaluates
 `gjones:mycommand` with a mocked oclif `Command`, calls `run()`, and verifies the
 documented scaffold output and command description metadata without requiring
-installed packages.
+installed packages. `npm run test:oclif` verifies installed launcher help and
+`gjones:mycommand` behavior through compatible `@oclif/core` and Twilio CLI
+Core 8.3.4. GitHub Actions runs the locked suite on Ubuntu 24.04 and Windows
+2025 for pushes and pull requests. The command rejects unexpected argv with a
+generic error so credential-like values are neither accepted nor reflected in
+plugin output.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -133,6 +171,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - Run `npm run check`, `npm run lint`, `npm run build`, `make lint`,
   `make build`, and `make check` before changing command code, package
   scripts, CI, or Twilio credential handling.
+- Keep `.nvmrc`, `package.json` engines, the reviewed lockfile, and GitHub
+  Actions aligned on the Node 24 toolchain baseline.
 - Keep the executable launcher mode on `bin/run` intact when editing packaging
   files.
 - Keep the Windows launcher wrapper pointed at the adjacent Node launcher when

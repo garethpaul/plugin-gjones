@@ -5,22 +5,25 @@ status: completed
 ## Context
 
 The credential-free plugin scaffold has dependency-free static and command
-execution tests, but only a historical Node 10 AppVeyor configuration. The
-legacy package graph is unlocked and should not be installed for this gate.
+execution tests. The legacy package graph is unlocked and should not be
+installed for this gate, while the repository now declares Node 24 as its
+supported local and hosted toolchain baseline.
 
 ## Priorities
 
-1. Run `npm test` for pushes and pull requests.
-2. Verify the maintained source-level contract on Node 18 and Node 22.
+1. Run `make check` for pushes and pull requests.
+2. Read Node 24 from `.nvmrc` so local and hosted validation stay aligned.
 3. Pin actions, runner, permissions, timeout, and concurrency.
-4. Keep dependency installation and Twilio credentials out of CI.
-5. Preserve the package's existing runtime compatibility declaration.
+4. Disable checkout credential persistence and keep CI read-only.
+5. Assign repository review ownership and enforce a sole hosted workflow.
+6. Keep dependency installation and Twilio credentials out of CI.
 
 ## Implementation Units
 
-Add a commit-pinned, read-only hosted Linux matrix that runs `npm test` without
-`npm install`. Preserve command output, command description, oclif metadata,
-launcher modes, package files, and Windows wrapper checks.
+Add a commit-pinned, credential-free, read-only hosted Linux job that reads
+Node 24 from `.nvmrc` and runs `make check` without `npm install`. Preserve
+command output, command description, oclif metadata, launcher modes, package
+files, and Windows wrapper checks.
 
 ## Verification
 
@@ -29,13 +32,13 @@ launcher modes, package files, and Windows wrapper checks.
 - `make lint`
 - `make build`
 - `make check`
-- Node 18 container `npm test`
+- Node 24 `make check`
 - workflow YAML parse
 - `git diff --check`
-- successful hosted Linux `Check` workflow for Node 18 and Node 22
+- successful hosted Linux `Check` workflow for Node 24
 
 ## Boundaries
 
 - Do not install or update the unlocked dependency graph.
 - Do not use Twilio credentials or make account mutations.
-- Do not change the package engine declaration in this pass.
+- Keep `.nvmrc`, package engines, AppVeyor, and GitHub Actions on Node 24.

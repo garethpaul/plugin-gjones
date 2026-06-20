@@ -19,7 +19,7 @@ function loadCommand() {
   const sandbox = {
     module: { exports: {} },
     require(name) {
-      if (name === '@oclif/command') {
+      if (name === '@oclif/core') {
         return { Command: class {} };
       }
       throw new Error(`unexpected require: ${name}`);
@@ -63,10 +63,28 @@ async function main() {
   );
   const command = Object.create(CommandClass.prototype);
   const lines = [];
+  command.argv = [];
   command.log = line => lines.push(line);
 
   await command.run();
   assert.deepStrictEqual(lines, [EXPECTED_OUTPUT]);
+
+  const credentialSentinel = 'redaction-sentinel-value';
+  const rejected = Object.create(CommandClass.prototype);
+  rejected.argv = [`--auth-token=${credentialSentinel}`];
+  rejected.log = () => assert.fail('invalid argv must not run the command');
+  rejected.error = message => {
+    const error = new Error(message);
+    error.exit = 2;
+    throw error;
+  };
+
+  await assert.rejects(
+    rejected.run(),
+    error => error.exit === 2 &&
+      error.message === 'This command does not accept arguments or flags.' &&
+      !error.message.includes(credentialSentinel)
+  );
 
   console.log('command output check passed.');
 }

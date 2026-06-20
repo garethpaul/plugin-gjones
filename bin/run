@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// Load up the command module *first* so that we're the parent rather than
-// some other dependency.
-const command = require('@oclif/command');
+
+// Load oclif first so this plugin remains the parent command package.
+const { Errors, flush, run } = require('@oclif/core');
 
 require('@twilio/cli-core').configureEnv();
-command.run()
-  .then(require('@oclif/command/flush'))
-  .catch(require('@oclif/errors/handle'));
+run()
+  .then(flush)
+  .catch(Errors.handle);

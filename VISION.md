@@ -16,16 +16,21 @@ guardrails, docs, and static baseline without requiring Twilio credentials or a
 live account.
 `npm run test:command` keeps the documented scaffold output aligned with the
 command implementation by executing `run()` with a mocked oclif base class.
+Node 24 is the default local toolchain. GitHub Actions runs Node 20, 22, and 24
+on hosted Linux plus Node 24 on Windows with script-disabled installation,
+repository and packed consumer audits, tests, and package validation.
 
 The current focus is:
 
 Priority:
 
-- Keep the dependency-free command baseline running on pinned hosted Linux with
-  Node 18 and Node 22
+- Keep the dependency-free command test plus installed launcher smoke coverage
+  running on pinned hosted Linux and Windows across Node 20, 22, and 24
 
 - Preserve the minimal command scaffold
 - Keep oclif and Twilio CLI metadata coherent
+- Keep the installed `gjones` topic description aligned with the
+  credential-free scaffold purpose
 - Avoid adding side effects to the example command
 - Keep the current command credential-free and free of account mutations
 - Keep generated documentation aligned with command names
@@ -40,11 +45,16 @@ Priority:
 - Keep `make lint`, `make build`, `npm run lint`, and `npm run build` available
   as stable static gate aliases
 - Keep package oclif metadata aligned with the command topic and launcher bin
+- Keep Node 24 as the `.nvmrc` default while engines and CI support Node 20+
+- Keep `@oclif/core` compatible with Twilio CLI Core 8.3.4 and keep the
+  repository plus packed consumer audit pinned to the reviewed upstream chain
+- Keep Twilio CLI `>=6.0.0 <7.0.0` on Node 20, 22, and 24 as the explicit supported host
+  boundary, with CLI Core 8 compatibility covered without live credentials
 
 Next priorities:
 
-- Fix any stale package metadata or issue links
-- Document supported Node and Twilio CLI versions
+- Add full Twilio CLI host-installation coverage only when it can remain
+  credential-free and deterministic across hosted Linux and Windows
 
 Contribution rules:
 

@@ -16,21 +16,29 @@ const COMMAND_DESCRIPTION_PLAN = 'docs/plans/2026-06-09-plugin-gjones-command-de
 const GATE_ALIASES_PLAN = 'docs/plans/2026-06-09-plugin-gjones-gate-aliases.md';
 const PACKAGE_DESCRIPTION_PLAN = 'docs/plans/2026-06-09-plugin-gjones-package-description.md';
 const WINDOWS_LAUNCHER_PLAN = 'docs/plans/2026-06-10-plugin-gjones-windows-launcher.md';
+const NODE24_TOOLCHAIN_PLAN = 'docs/plans/2026-06-10-plugin-gjones-node24-toolchain.md';
 const IMMUTABLE_OUTPUT_PLAN = 'docs/plans/2026-06-10-plugin-gjones-immutable-output-export.md';
 const HOSTED_VALIDATION_PLAN = 'docs/plans/2026-06-10-hosted-node-validation.md';
+const OCLIF_TOOLCHAIN_PLAN = 'docs/plans/2026-06-12-plugin-gjones-oclif-toolchain.md';
+const TOPIC_DESCRIPTION_PLAN = 'docs/plans/2026-06-13-oclif-topic-description.md';
+const HOST_COMPATIBILITY_PLAN = 'docs/plans/2026-06-13-twilio-cli-host-compatibility.md';
+const TRANSITIVE_ADVISORY_PLAN = 'docs/plans/2026-06-15-transitive-advisory-remediation.md';
+const DEEP_REVIEW_PLAN = 'docs/plans/2026-06-19-plugin-gjones-deep-review.md';
 const REQUIRED = [
+  '.github/CODEOWNERS',
   '.github/workflows/check.yml',
   '.gitignore',
+  '.nvmrc',
   'CHANGES.md',
   'Makefile',
   'README.md',
   'SECURITY.md',
   'VISION.md',
-  'appveyor.yml',
   'bin/run',
   'bin/run.cmd',
   'docs/readme-overview.svg',
   'package.json',
+  'package-lock.json',
   PLAN,
   CHECK_PLAN,
   COMMAND_EXECUTION_PLAN,
@@ -42,15 +50,36 @@ const REQUIRED = [
   GATE_ALIASES_PLAN,
   PACKAGE_DESCRIPTION_PLAN,
   WINDOWS_LAUNCHER_PLAN,
+  NODE24_TOOLCHAIN_PLAN,
   IMMUTABLE_OUTPUT_PLAN,
   HOSTED_VALIDATION_PLAN,
+  OCLIF_TOOLCHAIN_PLAN,
+  TOPIC_DESCRIPTION_PLAN,
+  HOST_COMPATIBILITY_PLAN,
+  TRANSITIVE_ADVISORY_PLAN,
+  DEEP_REVIEW_PLAN,
+  'scripts/check-audit.js',
   'scripts/check-baseline.js',
+  'scripts/check-consumer-audit.js',
   'src/commands/gjones/mycommand.js',
-  'tests/command-output.test.js'
+  'tests/audit-policy.test.js',
+  'tests/command-output.test.js',
+  'tests/consumer-audit.test.js',
+  'tests/twilio-cli-host-compatibility.test.js',
+  'tests/oclif-command-smoke.test.js'
 ];
 
 function read(relativePath) {
-  return fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
+  return fs.readFileSync(path.join(ROOT, relativePath), 'utf8').replace(/\r\n/g, '\n');
+}
+
+function markdownSection(text, heading) {
+  const lines = text.split('\n');
+  const start = lines.indexOf(`## ${heading}`);
+  if (start === -1) return '';
+  const followingHeading = lines.slice(start + 1).findIndex(line => line.startsWith('## '));
+  const end = followingHeading === -1 ? lines.length : start + 1 + followingHeading;
+  return lines.slice(start + 1, end).join('\n').trim();
 }
 
 function parseSource(relativePath) {
@@ -76,8 +105,32 @@ function main() {
   if (pkg.description !== 'Credential-free Twilio CLI plugin scaffold') {
     failures.push('package description must explain the credential-free scaffold purpose');
   }
-  if (pkg.scripts.test !== 'npm run check && npm run test:command') {
-    failures.push('npm test must run the static baseline and command output test');
+  if (pkg.dependencies?.['@oclif/core'] !== '^1.26.2' || pkg.dependencies?.['@twilio/cli-core'] !== '^8.3.4') {
+    failures.push('package.json must keep the reviewed oclif and Twilio CLI Core compatibility set');
+  }
+  if (JSON.stringify(pkg.devDependencies) !== JSON.stringify({ oclif: '^4.23.14' })) {
+    failures.push('package.json must keep only the maintained oclif utility CLI as a direct development dependency');
+  }
+  if (pkg.overrides !== undefined) {
+    failures.push('package.json must not claim consumer protection through root-only npm overrides');
+  }
+  for (const dependency of ['@oclif/command', '@oclif/config', '@oclif/dev-cli', '@oclif/test', '@twilio/cli-test', 'chai', 'eslint', 'eslint-config-oclif', 'globby', 'mocha', 'nyc']) {
+    if (pkg.dependencies?.[dependency] || pkg.devDependencies?.[dependency]) {
+      failures.push(`package.json must not restore unused legacy dependency ${dependency}`);
+    }
+  }
+  const lock = JSON.parse(read('package-lock.json'));
+  if (lock.lockfileVersion !== 3 || lock.packages?.['']?.dependencies?.['@oclif/core'] !== '^1.26.2' || lock.packages?.['']?.dependencies?.['@twilio/cli-core'] !== '^8.3.4' || lock.packages?.['']?.devDependencies?.oclif !== '^4.23.14') {
+    failures.push('package-lock.json must preserve the reviewed lockfileVersion 3 dependency graph');
+  }
+  if (lock.packages?.['node_modules/form-data']?.version !== '4.0.6' ||
+      lock.packages?.['node_modules/undici']?.version !== '6.27.0' ||
+      lock.packages?.['node_modules/@oclif/core/node_modules/js-yaml']?.version !== '3.14.2' ||
+      lock.packages?.['node_modules/@oclif/plugin-help/node_modules/js-yaml']?.version !== '3.14.2') {
+    failures.push('package-lock.json must keep patched form-data/undici and the reviewed upstream js-yaml boundary');
+  }
+  if (pkg.scripts.test !== 'npm run check && npm run test:audit && npm run test:consumer && npm run test:compatibility && npm run test:command && npm run test:oclif') {
+    failures.push('npm test must run the static baseline, audit helpers, host compatibility, command output, and installed oclif smoke tests');
   }
   if (pkg.scripts.lint !== 'npm run check') {
     failures.push('npm run lint must run the static baseline');
@@ -88,8 +141,26 @@ function main() {
   if (pkg.scripts['test:command'] !== 'node tests/command-output.test.js') {
     failures.push('package.json must expose npm run test:command');
   }
-  if (pkg.scripts.posttest) {
-    failures.push('posttest should not run npm audit without a committed lockfile');
+  if (pkg.scripts['test:audit'] !== 'node tests/audit-policy.test.js') {
+    failures.push('package.json must expose npm run test:audit');
+  }
+  if (pkg.scripts['test:consumer'] !== 'node tests/consumer-audit.test.js' || pkg.scripts['audit:consumer'] !== 'node scripts/check-consumer-audit.js') {
+    failures.push('package.json must expose packed-consumer audit tests and the hosted audit command');
+  }
+  if (pkg.scripts['test:compatibility'] !== 'node tests/twilio-cli-host-compatibility.test.js') {
+    failures.push('package.json must expose npm run test:compatibility');
+  }
+  if (pkg.scripts['test:oclif'] !== 'node tests/oclif-command-smoke.test.js') {
+    failures.push('package.json must expose npm run test:oclif');
+  }
+  if (pkg.scripts.postpack !== 'node -e "require(\'fs\').rmSync(\'oclif.manifest.json\', {force: true})"') {
+    failures.push('package.json postpack cleanup must remain portable across hosted Linux and Windows');
+  }
+  if (pkg.scripts.prepack !== 'oclif manifest && oclif readme' || pkg.scripts.version !== 'oclif readme && git add README.md') {
+    failures.push('package lifecycle scripts must use the maintained oclif utility CLI');
+  }
+  if (!pkg.engines || pkg.engines.node !== '>=20.0.0') {
+    failures.push('package.json engines.node must match the Twilio CLI Node 20+ host boundary');
   }
   if (pkg.bugs !== 'https://github.com/garethpaul/plugin-gjones/issues') {
     failures.push('package bugs URL must point at this repository');
@@ -112,15 +183,17 @@ function main() {
   }
   if (!oclif.topics || !oclif.topics.gjones) {
     failures.push('package.json oclif.topics must include gjones');
-  } else if (typeof oclif.topics.gjones.description !== 'string' || !oclif.topics.gjones.description.trim()) {
-    failures.push('package.json oclif.topics.gjones.description must stay populated');
+  } else if (oclif.topics.gjones.description !== 'Credential-free plugin scaffold commands') {
+    failures.push('package.json oclif.topics.gjones.description must match the credential-free scaffold purpose');
   }
 
-  if (!isExecutable('bin/run')) {
-    failures.push('bin/run must remain executable for Unix launcher installs');
-  }
-  if (isExecutable('bin/run.cmd')) {
-    failures.push('bin/run.cmd should not be marked executable');
+  if (process.platform !== 'win32') {
+    if (!isExecutable('bin/run')) {
+      failures.push('bin/run must remain executable for Unix launcher installs');
+    }
+    if (isExecutable('bin/run.cmd')) {
+      failures.push('bin/run.cmd should not be marked executable');
+    }
   }
   const windowsLauncher = read('bin/run.cmd');
   if (!windowsLauncher.includes('@echo off')) {
@@ -131,9 +204,15 @@ function main() {
   }
 
   for (const jsFile of [
+    'scripts/check-audit.js',
     'scripts/check-baseline.js',
+    'scripts/check-consumer-audit.js',
     'src/commands/gjones/mycommand.js',
-    'tests/command-output.test.js'
+    'tests/audit-policy.test.js',
+    'tests/command-output.test.js',
+    'tests/consumer-audit.test.js',
+    'tests/twilio-cli-host-compatibility.test.js',
+    'tests/oclif-command-smoke.test.js'
   ]) {
     try {
       // eslint-disable-next-line no-new-func
@@ -145,9 +224,11 @@ function main() {
 
   const command = read('src/commands/gjones/mycommand.js');
   for (const phrase of [
-    "const { Command } = require('@oclif/command')",
+    "const { Command } = require('@oclif/core')",
     "const OUTPUT_MESSAGE = 'Hello World Test!'",
     'class MyCommand extends Command',
+    "this.error('This command does not accept arguments or flags.'",
+    '(this.argv || []).length > 0',
     'this.log(OUTPUT_MESSAGE)',
     "Object.defineProperty(module.exports, 'OUTPUT_MESSAGE'",
     'enumerable: true',
@@ -156,6 +237,9 @@ function main() {
     if (!command.includes(phrase)) {
       failures.push(`mycommand.js must include ${phrase}`);
     }
+  }
+  if (command.includes("require('@oclif/command')") || command.includes("require('@oclif/config')")) {
+    failures.push('mycommand.js must not restore archived oclif imports');
   }
   for (const forbidden of ['Twilio' + 'ClientCommand', 'Twilio' + 'CliError']) {
     if (command.includes(forbidden)) {
@@ -175,38 +259,38 @@ function main() {
     "CommandClass.OUTPUT_MESSAGE = 'Changed output'",
     'CommandClass.description',
     'this.log(OUTPUT_MESSAGE);',
-    "name === '@oclif/command'"
+    "name === '@oclif/core'"
+    ,'redaction-sentinel-value'
+    ,'This command does not accept arguments or flags.'
   ]) {
     if (!commandTest.includes(phrase)) {
       failures.push(`command output test must include ${phrase}`);
     }
   }
 
-  const appveyor = read('appveyor.yml');
-  if (!appveyor.includes('nodejs_version: "10"')) {
-    failures.push('appveyor.yml must use the package-supported Node 10 baseline');
+  const launcher = read('bin/run');
+  if (launcher.includes('js-yaml-compat')) {
+    failures.push('bin/run must not claim a package-local shim protects consumer dependency graphs');
   }
-
-  const workflow = read('.github/workflows/check.yml');
-  for (const phrase of [
-    'permissions:\n  contents: read',
-    'cancel-in-progress: true',
-    'runs-on: ubuntu-24.04',
-    'timeout-minutes: 10',
-    'actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10',
-    'actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e',
-    'node-version: [18, 22]',
-    'run: npm test'
-  ]) {
-    if (!workflow.includes(phrase)) {
-      failures.push(`Check workflow must keep ${phrase}`);
+  for (const phrase of ["require('@oclif/core')", 'const { Errors, flush, run }', 'run()', '.then(flush)', '.catch(Errors.handle)']) {
+    if (!launcher.includes(phrase)) {
+      failures.push(`bin/run must include ${phrase}`);
     }
   }
-  const forbiddenCi = ['Invoke-' + 'WebRequest', 'codecov' + '.io', 'bash ' + 'codecov.sh'];
-  for (const forbidden of forbiddenCi) {
-    if (appveyor.includes(forbidden)) {
-      failures.push(`appveyor.yml must not download and execute remote CI scripts: ${forbidden}`);
+  if (launcher.includes("require('@oclif/command')") || launcher.includes("require('@oclif/errors/handle')")) {
+    failures.push('bin/run must not restore archived oclif launcher imports');
+  }
+  if (fs.existsSync(path.join(ROOT, 'src/js-yaml-compat.js'))) {
+    failures.push('the ineffective js-yaml consumer compatibility shim must stay removed');
+  }
+  const oclifSmokeTest = read('tests/oclif-command-smoke.test.js');
+  for (const phrase of ['spawnSync', "['--help']", "['gjones:mycommand']", "'Hello World Test!\\n'", '/Credential-free plugin scaffold commands/']) {
+    if (!oclifSmokeTest.includes(phrase)) {
+      failures.push(`oclif command smoke test must include ${phrase}`);
     }
+  }
+  if (fs.existsSync(path.join(ROOT, 'appveyor.yml'))) {
+    failures.push('AppVeyor must stay retired in favor of the reviewed GitHub Actions matrix');
   }
 
   const gitignore = read('.gitignore');
@@ -214,6 +298,93 @@ function main() {
     if (!gitignore.includes(phrase)) {
       failures.push(`.gitignore must include ${phrase}`);
     }
+  }
+  if (gitignore.includes('package-lock.json')) {
+    failures.push('.gitignore must not ignore the reviewed package-lock.json');
+  }
+
+  const nvmrc = read('.nvmrc').trim();
+  if (nvmrc !== '24') {
+    failures.push('.nvmrc must pin the Node 24 toolchain baseline');
+  }
+
+  const workflow = read('.github/workflows/check.yml');
+  const actions = [...workflow.matchAll(/^\s*(?:-\s*)?uses:\s*(\S+)(?:\s+#.*)?$/gm)].map((match) => match[1]);
+  for (const phrase of [
+    'permissions:\n  contents: read',
+    'cancel-in-progress: true',
+    'name: check (${{ matrix.os }}, node-${{ matrix.node }})',
+    '- os: ubuntu-24.04\n            node: 20',
+    '- os: ubuntu-24.04\n            node: 22',
+    '- os: ubuntu-24.04\n            node: 24',
+    '- os: windows-2025\n            node: 24',
+    'runs-on: ${{ matrix.os }}',
+    'timeout-minutes: 10',
+    'persist-credentials: false',
+    'node-version: ${{ matrix.node }}',
+    'cache: npm',
+    'run: npm ci --ignore-scripts',
+    'run: node scripts/check-audit.js',
+    'run: npm test',
+    'run: npm pack --dry-run',
+    'name: packed consumer audit (node-24)',
+    'run: npm run audit:consumer',
+    'name: check',
+    'needs: [matrix, consumer]',
+    'MATRIX_RESULT: ${{ needs.matrix.result }}',
+    'CONSUMER_RESULT: ${{ needs.consumer.result }}',
+    'run: test "$MATRIX_RESULT" = success && test "$CONSUMER_RESULT" = success'
+  ]) {
+    if (!workflow.includes(phrase)) {
+      failures.push(`GitHub Actions workflow must mention ${phrase}`);
+    }
+  }
+  if (actions.join('\n') !== [
+    'actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10',
+    'actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e',
+    'actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10',
+    'actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e'
+  ].join('\n')) {
+    failures.push('GitHub Actions workflow must use only the pinned checkout and setup-node actions');
+  }
+  if (workflow.match(/persist-credentials:/g)?.length !== 2) {
+    failures.push('GitHub Actions workflow must disable checkout credential persistence in both jobs');
+  }
+  if (/\bnpm install\b/.test(workflow) || (workflow.match(/npm ci --ignore-scripts/g) || []).length !== 2) {
+    failures.push('GitHub Actions must install only from the lockfile with lifecycle scripts disabled in both jobs');
+  }
+  if ((workflow.match(/node scripts\/check-audit\.js/g) || []).length !== 1 ||
+      (workflow.match(/npm run audit:consumer/g) || []).length !== 1 ||
+      /npm audit|--omit/.test(workflow)) {
+    failures.push('GitHub Actions must run the reviewed root and packed-consumer audit policies');
+  }
+  const auditPolicy = read('scripts/check-audit.js');
+  for (const phrase of [
+    "['audit', '--audit-level=low', '--json']",
+    "shell: platform === 'win32'",
+    'const moderate = consumer ? 6 : 5',
+    'GHSA-h67p-54hq-rp68',
+    'expected vulnerable packages',
+    'Dependency audit matched the reviewed upstream advisory boundary.'
+  ]) {
+    if (!auditPolicy.includes(phrase)) failures.push(`dependency audit policy must keep ${phrase}`);
+  }
+  const consumerAudit = read('scripts/check-consumer-audit.js');
+  for (const phrase of ['npm pack', "['install', '--ignore-scripts', '--no-fund'", '{ consumer: true }', '1 MiB limit', 'fs.rmSync']) {
+    if (!consumerAudit.includes(phrase)) failures.push(`packed consumer audit must keep ${phrase}`);
+  }
+  if ((workflow.match(/^\s{2}check:\s*$/gm) || []).length !== 1 || (workflow.match(/^\s{4}name:\s*check\s*$/gm) || []).length !== 1) {
+    failures.push('GitHub Actions must expose one protected check context after the platform matrix');
+  }
+  if (workflow.match(/permissions:/g)?.length !== 1 || /^\s+[A-Za-z-]+:\s+write\s*$/m.test(workflow)) {
+    failures.push('GitHub Actions workflow must keep one read-only permissions block');
+  }
+  const workflowFiles = fs.readdirSync(path.join(ROOT, '.github/workflows'));
+  if (workflowFiles.length !== 1 || workflowFiles[0] !== 'check.yml') {
+    failures.push('check.yml must be the repository\'s only hosted workflow');
+  }
+  if (read('.github/CODEOWNERS').trim() !== '* @garethpaul') {
+    failures.push('CODEOWNERS must assign the repository to @garethpaul');
   }
 
   const docs = ['README.md', 'SECURITY.md', 'VISION.md', 'CHANGES.md']
@@ -242,10 +413,56 @@ function main() {
     'Windows launcher wrapper',
     'packaged launcher files',
     'oclif metadata',
-    'hosted Linux'
+    'Node 24',
+    'Node 20, 22, and 24',
+    'GitHub Actions',
+    'reviewed lockfile',
+    'full dependency graph',
+    'hosted Linux and Windows',
+    '@oclif/core',
+    'Twilio CLI Core 8.3.4',
+    'Twilio CLI `>=6.0.0 <7.0.0`',
+    'Twilio CLI 5.x',
+    'test:compatibility',
+    'test:oclif'
+    ,'Credential-free plugin scaffold commands',
+    'form-data 4.0.6',
+    'undici 6.27.0',
+    'js-yaml 3.14.2',
+    'GHSA-h67p-54hq-rp68',
+    'packed consumer audit',
+    'fail-closed JSON policy'
   ]) {
     if (!docs.toLowerCase().includes(phrase.toLowerCase())) {
       failures.push(`docs must mention ${phrase}`);
+    }
+  }
+
+  const hostCompatibilityClaims = {
+    'README.md': 'The supported host line is Twilio CLI `>=6.0.0 <7.0.0` on Node 20, 22, and 24',
+    'SECURITY.md': 'supported plugin host boundary is Twilio CLI `>=6.0.0 <7.0.0` on Node 20, 22, and 24',
+    'VISION.md': 'Keep Twilio CLI `>=6.0.0 <7.0.0` on Node 20, 22, and 24',
+    'CHANGES.md': 'Documented Twilio CLI `>=6.0.0 <7.0.0` on Node 20, 22, and 24'
+  };
+  for (const [file, phrase] of Object.entries(hostCompatibilityClaims)) {
+    if (!read(file).includes(phrase)) {
+      failures.push(`${file} must include ${phrase}`);
+    }
+  }
+
+  const compatibilityTest = read('tests/twilio-cli-host-compatibility.test.js');
+  for (const phrase of [
+    "pkg.engines.node, '>=20.0.0'",
+    "pkg.dependencies['@twilio/cli-core'], '^8.3.4'",
+    "lock.packages['node_modules/@twilio/cli-core']",
+    "node_modules/@oclif/core/node_modules/js-yaml",
+    'pkg.overrides, undefined',
+    "lockedCore.version.split('.')[0]",
+    'process.versions.node',
+    'Twilio CLI host compatibility contract passed.'
+  ]) {
+    if (!compatibilityTest.includes(phrase)) {
+      failures.push(`host compatibility test must include ${phrase}`);
     }
   }
 
@@ -324,6 +541,13 @@ function main() {
     }
   }
 
+  const node24ToolchainPlan = read(NODE24_TOOLCHAIN_PLAN);
+  for (const phrase of ['status: completed', 'Node 24', '.nvmrc', 'GitHub Actions', 'make check']) {
+    if (!node24ToolchainPlan.includes(phrase)) {
+      failures.push(`Node 24 toolchain plan must mention ${phrase}`);
+    }
+  }
+
   const immutableOutputPlan = read(IMMUTABLE_OUTPUT_PLAN);
   for (const phrase of ['status: completed', 'Object.defineProperty', 'non-writable', 'npm run test:command']) {
     if (!immutableOutputPlan.includes(phrase)) {
@@ -332,9 +556,88 @@ function main() {
   }
 
   const hostedValidationPlan = read(HOSTED_VALIDATION_PLAN);
-  for (const phrase of ['status: completed', 'Node 18', 'Node 22', 'npm test']) {
+  for (const phrase of ['status: completed', 'Node 24', '.nvmrc', 'make check']) {
     if (!hostedValidationPlan.includes(phrase)) {
       failures.push(`hosted validation plan must mention ${phrase}`);
+    }
+  }
+
+  const oclifToolchainPlan = read(OCLIF_TOOLCHAIN_PLAN);
+  const oclifToolchainStatus = [...oclifToolchainPlan.matchAll(/^status:\s*(.+?)\s*$/gmi)].map(match => match[1]);
+  const oclifToolchainWork = markdownSection(oclifToolchainPlan, 'Work Completed');
+  const oclifToolchainVerification = markdownSection(oclifToolchainPlan, 'Verification Completed');
+  if (oclifToolchainStatus.length !== 1 || oclifToolchainStatus[0] !== 'completed' || !oclifToolchainWork) {
+    failures.push('oclif toolchain migration plan must record one completed status and completed work');
+  }
+  if (!oclifToolchainVerification || /\b(?:pending|todo|tbd|not run)\b/i.test(oclifToolchainVerification)) {
+    failures.push('oclif toolchain migration plan must record finished verification without pending markers');
+  }
+  for (const evidence of [
+    'Node 24.16.0',
+    'npm ci --ignore-scripts',
+    'npm audit --audit-level=low',
+    'npm run check',
+    'npm test',
+    'make lint',
+    'make test',
+    'make build',
+    'make verify',
+    'make check',
+    'external working directory',
+    '462 installed packages',
+    'expected six files',
+    'tests/oclif-command-smoke.test.js',
+    'Hello World Test!',
+    'Eight hostile implementation mutations',
+    'CRLF workflow simulation',
+    '27413299838',
+    '27413384712',
+    '27413387196',
+    '7a6faa081e4617ad96778440ca6a8e228253c954',
+    'ea4ad6c0a5d93e765d4530b15f4f20ed1879167a',
+    'ubuntu-24.04',
+    'windows-2025'
+  ]) {
+    if (!oclifToolchainVerification.includes(evidence)) {
+      failures.push(`oclif toolchain migration plan must preserve verification evidence: ${evidence}`);
+    }
+  }
+
+  const topicDescriptionPlan = read(TOPIC_DESCRIPTION_PLAN);
+  for (const phrase of ['status: completed', 'Node 24.16.0', 'npm test', 'hostile mutations rejected', 'command source and dependency paths had no diff', 'git diff --check', 'secret, generated-artifact, and dependency-drift scan']) {
+    if (!topicDescriptionPlan.includes(phrase)) {
+      failures.push(`topic description plan must mention ${phrase}`);
+    }
+  }
+
+  const hostCompatibilityPlan = read(HOST_COMPATIBILITY_PLAN);
+  for (const phrase of ['status: completed', 'Twilio CLI `>=6.0.0 <7.0.0`', 'Node 24', 'CLI Core 8.3.4', 'npm run test:compatibility', 'hostile mutations', 'git diff --check']) {
+    if (!hostCompatibilityPlan.includes(phrase)) {
+      failures.push(`Twilio CLI host compatibility plan must mention ${phrase}`);
+    }
+  }
+
+  const transitiveAdvisoryPlan = read(TRANSITIVE_ADVISORY_PLAN);
+  if (!transitiveAdvisoryPlan.includes('Superseded by the 2026-06-19 deep review')) {
+    failures.push('transitive advisory plan must identify the later consumer-install correction');
+  }
+
+  const deepReviewPlan = read(DEEP_REVIEW_PLAN);
+  for (const phrase of [
+    'status: completed',
+    'PR #1',
+    'PR #2',
+    'PR #3',
+    'PR #4',
+    'Node 20, 22, and 24',
+    'unexpected argv',
+    'packed consumer',
+    'GHSA-h67p-54hq-rp68',
+    'no live Twilio calls',
+    'hosted validation'
+  ]) {
+    if (!deepReviewPlan.includes(phrase)) {
+      failures.push(`deep-review plan must mention ${phrase}`);
     }
   }
 
@@ -345,6 +648,16 @@ function main() {
   for (const phrase of ['lint:', 'build:', 'verify: lint test build']) {
     if (!makefile.includes(phrase)) {
       failures.push(`Makefile must include ${phrase}`);
+    }
+  }
+  for (const phrase of [
+    'ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))',
+    'cd "$(ROOT)" && $(NPM) run lint',
+    'cd "$(ROOT)" && $(NPM) test',
+    'cd "$(ROOT)" && $(NPM) run build'
+  ]) {
+    if (!makefile.includes(phrase)) {
+      failures.push(`Makefile must remain caller-directory independent with ${phrase}`);
     }
   }
 

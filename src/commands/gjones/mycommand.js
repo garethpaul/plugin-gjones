@@ -1,9 +1,13 @@
-const { Command } = require('@oclif/command');
+const { Command } = require('@oclif/core');
 
 const OUTPUT_MESSAGE = 'Hello World Test!';
 
 class MyCommand extends Command {
   async run() {
+    if ((this.argv || []).length > 0) {
+      this.error('This command does not accept arguments or flags.', { exit: 2 });
+    }
+
     this.log(OUTPUT_MESSAGE);
   }
 }

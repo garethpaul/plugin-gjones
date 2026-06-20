@@ -5,23 +5,11 @@
   "author": "@garethpaul",
   "bugs": "https://github.com/garethpaul/plugin-gjones/issues",
   "dependencies": {
-    "@oclif/command": "^1.5.20",
-    "@oclif/config": "^1.15.1",
-    "@twilio/cli-core": "^5.0.0"
-  },
-  "devDependencies": {
-    "@oclif/dev-cli": "^1.22.2",
-    "@oclif/test": "^1.2.5",
-    "@twilio/cli-test": "^2.1.0",
-    "chai": "^4.2.0",
-    "eslint": "^6.8.0",
-    "eslint-config-oclif": "^3.1.0",
-    "globby": "^11.0.0",
-    "mocha": "^7.1.2",
-    "nyc": "^15.0.1"
+    "@oclif/core": "^1.26.2",
+    "@twilio/cli-core": "^8.3.4"
   },
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=20.0.0"
   },
   "files": [
     "/bin",
@@ -43,7 +31,7 @@
     ],
     "topics": {
       "gjones": {
-        "description": "just my simple plugin"
+        "description": "Credential-free plugin scaffold commands"
       }
     }
   },
@@ -55,10 +43,18 @@
     "build": "npm run check",
     "check": "node scripts/check-baseline.js",
     "lint": "npm run check",
-    "postpack": "rm -f oclif.manifest.json",
-    "prepack": "oclif-dev manifest && oclif-dev readme",
-    "test": "npm run check && npm run test:command",
+    "postpack": "node -e \"require('fs').rmSync('oclif.manifest.json', {force: true})\"",
+    "prepack": "oclif manifest && oclif readme",
+    "test": "npm run check && npm run test:audit && npm run test:consumer && npm run test:compatibility && npm run test:command && npm run test:oclif",
+    "audit:consumer": "node scripts/check-consumer-audit.js",
+    "test:audit": "node tests/audit-policy.test.js",
+    "test:consumer": "node tests/consumer-audit.test.js",
+    "test:compatibility": "node tests/twilio-cli-host-compatibility.test.js",
     "test:command": "node tests/command-output.test.js",
-    "version": "oclif-dev readme && git add README.md"
+    "test:oclif": "node tests/oclif-command-smoke.test.js",
+    "version": "oclif readme && git add README.md"
+  },
+  "devDependencies": {
+    "oclif": "^4.23.14"
   }
 }
