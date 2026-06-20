@@ -2,7 +2,15 @@
 'use strict';
 
 const assert = require('assert');
-const { auditSpawnOptions, findPackedArtifact, parseAuditOutput } = require('../scripts/check-consumer-audit');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const {
+  auditSpawnOptions,
+  findPackedArtifact,
+  parseAuditOutput,
+  validatePackedManifest
+} = require('../scripts/check-consumer-audit');
 
 assert.strictEqual(findPackedArtifact(['plugin.tgz']), 'plugin.tgz');
 assert.throws(() => findPackedArtifact([]), /exactly one packed artifact/);
@@ -18,5 +26,17 @@ assert.throws(() => parseAuditOutput({ status: 1, stdout: 'not json' }), /did no
 
 assert.strictEqual(auditSpawnOptions('win32').shell, true);
 assert.strictEqual(auditSpawnOptions('linux').shell, false);
+
+const pluginRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'plugin-gjones-manifest-'));
+try {
+  assert.deepStrictEqual(validatePackedManifest({}, pluginRoot), []);
+  fs.mkdirSync(path.join(pluginRoot, 'node_modules'));
+  const failures = validatePackedManifest({ dependencies: { unsafe: '1.0.0' }, overrides: { unsafe: '2.0.0' } }, pluginRoot);
+  assert.ok(failures.some(failure => failure.includes('runtime dependencies')));
+  assert.ok(failures.some(failure => failure.includes('dependency overrides')));
+  assert.ok(failures.some(failure => failure.includes('node_modules')));
+} finally {
+  fs.rmSync(pluginRoot, { force: true, recursive: true });
+}
 
 console.log('consumer audit helper tests passed.');

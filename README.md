@@ -41,19 +41,19 @@ Additional scan context:
 ### Prerequisites
 
 - Git
-- Node.js 20, 22, or 24 and npm; Node 24 remains the default in `.nvmrc`
+- Node.js 20, 22, 24, or 25 and npm; Node 24 remains the default in `.nvmrc`
 - Twilio CLI `>=6.0.0 <7.0.0` when loading this package as a plugin
 
 ### Supported Twilio CLI Host
 
-The supported host line is Twilio CLI `>=6.0.0 <7.0.0` on Node 20, 22, and 24.
-Twilio CLI 6 uses CLI Core 8, matching this package's locked Twilio CLI Core
-8.3.4 integration boundary. Twilio CLI 5.x and Node versions below 20 are
-outside the supported contract.
+The supported host line is Twilio CLI `>=6.0.0 <7.0.0` on Node 20, 22, 24, and
+25. The packed plugin declares Oclif and Twilio CLI Core as optional host
+contracts but owns neither dependency. Twilio CLI 5.x and Node versions below
+20 are outside the supported contract.
 
-Repository validation exercises the command and installed launcher through CLI
-Core 8.3.4. It does not install every Twilio CLI 6.x patch or exercise live
-authentication, profiles, API calls, account mutations, or plugin publication.
+Repository validation exercises the command through the local Oclif toolchain
+and a packed artifact linked into real Twilio CLI 6.2.4. It does not exercise
+live authentication, profiles, API calls, account mutations, or publication.
 
 ### Setup
 
@@ -81,11 +81,12 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   scaffold help surface stays reviewable.
 - The package description stays aligned with the credential-free Twilio CLI
   plugin scaffold purpose.
-- Keep `bin/run` as the executable launcher for Unix installs; `bin/run.cmd`
-  remains the non-executable Windows wrapper.
+- Keep `bin/run` as the executable local development launcher; `bin/run.cmd`
+  remains the non-executable Windows development wrapper.
 - Keep the Windows launcher wrapper as a quiet delegation to the adjacent
   `bin/run` Node entry point.
-- Packaged launcher files stay included through the package `files` list.
+- Packed artifacts exclude both launchers and contain only generated metadata,
+  command source, and standard npm documentation files.
 - Keep the oclif metadata aligned with the `gjones` command topic, `twilio`
   launcher bin, and `./src/commands` command directory.
 - The installed `gjones` topic help describes the commands as
@@ -101,6 +102,9 @@ Detected npm scripts:
 - `npm run test` - static, host-compatibility, command-output, and installed
   oclif smoke tests
 - `npm run audit:consumer` - pack, install, and audit the consumer artifact
+- `npm run test:packed` - prove a fresh packed consumer owns no vulnerable path
+- `npm run test:yaml` - prove plugin modules preserve host safe YAML APIs
+- `npm run verify:twilio-host` - link the packed plugin into Twilio CLI 6.2.4
 - `npm run test:consumer` - dependency-free consumer-audit helper tests
 - `npm run test:compatibility` - Node and CLI Core host-boundary contract
 - `npm run test:command` - `node tests/command-output.test.js`
@@ -109,20 +113,19 @@ Detected npm scripts:
 
 ## Testing and Verification
 
-Pinned, credential-free hosted validation runs Node 20, 22, and 24 on Linux and
-Node 24 on Windows. It installs the reviewed lockfile with lifecycle scripts
-disabled, runs the complete test suite, audits the repository graph, validates
-package contents, and performs a packed consumer audit. The graph resolves
-`form-data 4.0.6`, `undici 6.27.0`, and `js-yaml 4.2.0`. A narrow launcher
-preload maps the removed `safeLoad` and `safeDump` aliases to js-yaml 4's
-safe-by-default APIs before the compatible oclif 1.x host starts. The
-fail-closed JSON policy requires zero known vulnerabilities in the repository
-graph. Because npm does not apply dependency-package overrides when a consumer
-installs the plugin, the packed-consumer policy separately permits only the
-exact moderate js-yaml chain inherited from Twilio CLI Core 8.3.4. Packed or
-published consumers remain vulnerable to that advisory until the Twilio/oclif
-host line stops resolving js-yaml 3.x; do not describe downstream installs as
-fully patched or zero-vulnerability.
+Pinned, credential-free hosted validation runs Node 20, 22, 24, and 25 on Linux
+and Windows. It installs the reviewed lockfile with lifecycle scripts disabled,
+runs the complete test suite, audits the full development graph, validates the
+package contents, and audits a fresh packed consumer. Both repository and
+packed-consumer policies require zero findings; no advisory allowlist exists.
+The packed plugin has no runtime `dependencies`, no overrides, no nested
+`node_modules`, no launcher, and no YAML preload or monkeypatch.
+
+Twilio CLI 6.2.4 independently resolves `js-yaml 3.14.2` and currently has a
+non-zero host audit. Those findings are host-owned and are reported separately;
+they are neither installed by the plugin nor treated as plugin audit success.
+The real-host check verifies `Hello World Test!` and ensures npm does not
+attribute host advisories to `@garethpaul/plugin-gjones`.
 
 - `make check`
 - `make lint`
@@ -135,7 +138,10 @@ fully patched or zero-vulnerability.
 - `npm run test:command`
 - `npm run test:compatibility`
 - `npm run test:oclif`
+- `npm run test:packed`
+- `npm run test:yaml`
 - `npm run audit:consumer`
+- `npm run verify:twilio-host`
 - `npm audit --audit-level=low`
 - `npm pack --dry-run`
 
@@ -143,8 +149,8 @@ fully patched or zero-vulnerability.
 `gjones:mycommand` with a mocked oclif `Command`, calls `run()`, and verifies the
 documented scaffold output and command description metadata without requiring
 installed packages. `npm run test:oclif` verifies installed launcher help and
-`gjones:mycommand` behavior through compatible `@oclif/core` and Twilio CLI
-Core 8.3.4. GitHub Actions runs the locked suite on Ubuntu 24.04 and Windows
+`gjones:mycommand` behavior through compatible Oclif host APIs. GitHub Actions
+runs the locked suite on Ubuntu 24.04 and Windows
 2025 for pushes and pull requests. The command rejects unexpected argv with a
 generic error so credential-like values are neither accepted nor reflected in
 plugin output.

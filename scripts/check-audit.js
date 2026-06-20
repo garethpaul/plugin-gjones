@@ -3,60 +3,21 @@
 
 const { spawnSync } = require('child_process');
 
-const EXPECTED_ADVISORY = 'https://github.com/advisories/GHSA-h67p-54hq-rp68';
-const EXPECTED_CONSUMER_VIA = {
-  '@garethpaul/plugin-gjones': ['@oclif/core', '@twilio/cli-core'],
-  '@oclif/core': ['js-yaml'],
-  '@oclif/plugin-help': ['@oclif/core'],
-  '@oclif/plugin-plugins': ['@oclif/core'],
-  '@twilio/cli-core': ['@oclif/core', '@oclif/plugin-plugins'],
-  'js-yaml': [EXPECTED_ADVISORY]
-};
+const ZERO_COUNTS = { info: 0, low: 0, moderate: 0, high: 0, critical: 0, total: 0 };
 
-function viaIdentifiers(via) {
-  return (Array.isArray(via) ? via : []).map(item => typeof item === 'string' ? item : item.url).sort();
-}
-
-function validateAuditReport(report, { consumer = false } = {}) {
+function validateAuditReport(report) {
   const failures = [];
   const counts = report?.metadata?.vulnerabilities;
-  const expectedCounts = consumer
-    ? { info: 0, low: 0, moderate: 6, high: 0, critical: 0, total: 6 }
-    : { info: 0, low: 0, moderate: 0, high: 0, critical: 0, total: 0 };
-
-  if (JSON.stringify(counts) !== JSON.stringify(expectedCounts)) {
-    failures.push(`expected vulnerability counts ${JSON.stringify(expectedCounts)}, received ${JSON.stringify(counts)}`);
+  if (JSON.stringify(counts) !== JSON.stringify(ZERO_COUNTS)) {
+    failures.push(`expected zero vulnerabilities, received ${JSON.stringify(counts)}`);
   }
 
   const vulnerabilities = report?.vulnerabilities;
   if (!vulnerabilities || typeof vulnerabilities !== 'object' || Array.isArray(vulnerabilities)) {
     failures.push('audit report must include a vulnerable-package map');
-  }
-  const packageNames = vulnerabilities && typeof vulnerabilities === 'object' ? Object.keys(vulnerabilities).sort() : [];
-  if (!consumer) {
-    if (packageNames.length !== 0) {
-      failures.push(`expected no vulnerable packages, received ${packageNames.join(', ')}`);
-    }
-    return failures;
-  }
-
-  const expectedNames = Object.keys(EXPECTED_CONSUMER_VIA).sort();
-  if (JSON.stringify(packageNames) !== JSON.stringify(expectedNames)) {
-    failures.push(`expected vulnerable packages ${expectedNames.join(', ')}, received ${packageNames.join(', ')}`);
-  }
-
-  for (const [name, expected] of Object.entries(EXPECTED_CONSUMER_VIA)) {
-    const finding = vulnerabilities?.[name];
-    if (!finding) {
-      failures.push(`expected reviewed advisory package ${name}`);
-      continue;
-    }
-    if (finding.severity !== 'moderate') {
-      failures.push(`${name} must remain moderate, received ${finding.severity}`);
-    }
-    const actualVia = viaIdentifiers(finding.via);
-    if (JSON.stringify(actualVia) !== JSON.stringify([...expected].sort())) {
-      failures.push(`${name} must only inherit reviewed paths ${[...expected].sort().join(', ')}, received ${actualVia.join(', ')}`);
+  } else {
+    for (const name of Object.keys(vulnerabilities).sort()) {
+      failures.push(`unexpected advisory path through ${name}`);
     }
   }
 
@@ -95,6 +56,9 @@ function main() {
     return;
   }
 
+  if (result.status !== 0) {
+    throw new Error(`npm audit reported no findings but exited ${result.status}`);
+  }
   console.log('Dependency audit reported zero known vulnerabilities.');
 }
 
@@ -107,4 +71,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { EXPECTED_ADVISORY, auditSpawnOptions, validateAuditReport };
+module.exports = { ZERO_COUNTS, auditSpawnOptions, validateAuditReport };
