@@ -128,6 +128,7 @@ function validateHostedWindowsGitTree(options = {}) {
   const repoRoot = options.repoRoot || ROOT;
   const gitDir = options.gitDir;
   const treeish = options.treeish || 'HEAD';
+  const requiredEntries = options.requiredEntries || [];
   const failures = [];
 
   try {
@@ -141,6 +142,22 @@ function validateHostedWindowsGitTree(options = {}) {
     entries = gitTreeEntries(repoRoot, treeish, gitDir);
   } catch (error) {
     return [`hosted Windows path policy could not read git tree ${treeish}: ${error.message}`];
+  }
+
+  const exactPaths = new Set();
+  for (const entry of entries) {
+    if (exactPaths.has(entry.path)) {
+      return [`duplicate Git tree path "${entry.path}" is not allowed`];
+    }
+    exactPaths.add(entry.path);
+  }
+
+  const entriesByPath = new Map(entries.map(entry => [entry.path, entry]));
+  for (const required of requiredEntries) {
+    const entry = entriesByPath.get(required.path);
+    if (!entry || entry.mode !== required.mode || entry.type !== required.type) {
+      failures.push(`${required.path}: Git tree entry must be ${required.mode} ${required.type}`);
+    }
   }
 
   const seen = new Map();

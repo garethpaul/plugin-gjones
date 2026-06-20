@@ -15,7 +15,11 @@ function main() {
   }
   if (!path.isAbsolute(gitDir)) throw new Error('git directory must be an absolute path');
 
-  const failures = validateHostedWindowsGitTree({ gitDir, treeish });
+  const failures = validateHostedWindowsGitTree({
+    gitDir,
+    treeish,
+    requiredEntries: [{ path: 'bin/run', mode: '100755', type: 'blob' }]
+  });
   if (failures.length > 0) {
     reportHostedWindowsPathFailures(failures);
     process.exitCode = 1;
