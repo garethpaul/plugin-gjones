@@ -119,7 +119,10 @@ safe-by-default APIs before the compatible oclif 1.x host starts. The
 fail-closed JSON policy requires zero known vulnerabilities in the repository
 graph. Because npm does not apply dependency-package overrides when a consumer
 installs the plugin, the packed-consumer policy separately permits only the
-exact moderate js-yaml chain inherited from Twilio CLI Core 8.3.4.
+exact moderate js-yaml chain inherited from Twilio CLI Core 8.3.4. Packed or
+published consumers remain vulnerable to that advisory until the Twilio/oclif
+host line stops resolving js-yaml 3.x; do not describe downstream installs as
+fully patched or zero-vulnerability.
 
 - `make check`
 - `make lint`

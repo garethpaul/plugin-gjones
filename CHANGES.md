@@ -18,6 +18,8 @@
 - Kept the packed consumer audit from the deep review and restricted its
   allowance to the exact moderate js-yaml chain inherited from Twilio CLI Core;
   npm does not apply dependency-package overrides to downstream installations.
+- Clarified that packed or published consumers remain vulnerable to that
+  advisory until the compatible Twilio/oclif host line stops using js-yaml 3.x.
 
 ## 2026-06-19
 

@@ -58,6 +58,9 @@ dependency graph. The packed consumer audit separately permits only the exact
 moderate js-yaml advisory chain inherited from Twilio CLI Core 8.3.4 and rejects
 new packages, paths, severities, inconsistent counts, or malformed reports. npm
 does not apply dependency-package overrides to downstream installations.
+Packed or published consumers remain vulnerable to that advisory until the
+Twilio/oclif host line stops resolving js-yaml 3.x. The repository-only override
+and launcher preload must not be presented as a downstream fix.
 
 Dependency updates should come from trusted package managers and should keep lockfiles in sync when lockfiles exist. Do not commit credentials, private keys, tokens, generated secrets, or machine-local configuration. If a vulnerability depends on a compromised package, typosquatting risk, insecure transitive dependency, or unsafe build step, include the package name, affected version, and the path through which it is used.
 

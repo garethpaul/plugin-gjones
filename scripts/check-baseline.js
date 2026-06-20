@@ -448,6 +448,17 @@ function main() {
     }
   }
 
+  const consumerRiskClaims = {
+    'README.md': 'Packed or published consumers remain vulnerable to that advisory',
+    'SECURITY.md': 'Packed or published consumers remain vulnerable to that advisory',
+    'CHANGES.md': 'packed or published consumers remain vulnerable to that'
+  };
+  for (const [file, phrase] of Object.entries(consumerRiskClaims)) {
+    if (!read(file).replace(/\s+/g, ' ').includes(phrase)) {
+      failures.push(`${file} must include ${phrase}`);
+    }
+  }
+
   const compatibilityTest = read('tests/twilio-cli-host-compatibility.test.js');
   for (const phrase of [
     "pkg.engines.node, '>=20.0.0'",
