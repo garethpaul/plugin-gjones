@@ -1,0 +1,44 @@
+name: Trusted Hosted Windows Path Policy
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  verify:
+    name: verify PR tree paths
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out trusted verifier
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Set up trusted Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.1.0
+        with:
+          node-version: 24
+
+      - name: Fetch pull request head as data
+        env:
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          case "$HEAD_SHA" in
+            ""|*[!0-9a-fA-F]*) exit 1 ;;
+          esac
+          case "$HEAD_REPO" in
+            ""|*[!A-Za-z0-9_.\\/-]*) exit 1 ;;
+          esac
+          git remote add pr "$GITHUB_SERVER_URL/$HEAD_REPO.git"
+          git fetch --no-tags --filter=blob:none pr "$HEAD_SHA"
+
+      - name: Verify hosted Windows path policy
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node .github/trusted/verify-hosted-windows-path-policy.js "$HEAD_SHA^{tree}"

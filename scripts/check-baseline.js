@@ -3,11 +3,18 @@
 
 const fs = require('fs');
 const path = require('path');
+const { spawnSync } = require('child_process');
+const {
+  reportHostedWindowsPathFailures,
+  validateHostedWindowsGitTree
+} = require('./hosted-windows-path-policy');
 
 const ROOT = path.resolve(__dirname, '..');
 const REQUIRED = [
   '.github/CODEOWNERS',
+  '.github/trusted/verify-hosted-windows-path-policy.js',
   '.github/workflows/check.yml',
+  '.github/workflows/trusted-hosted-windows-path-policy.yml',
   '.nvmrc',
   'CHANGES.md',
   'Makefile',
@@ -23,16 +30,29 @@ const REQUIRED = [
   'scripts/check-baseline.js',
   'scripts/check-consumer-audit.js',
   'scripts/check-real-twilio-host.js',
+  'scripts/data/unicode-17-casefold-cf.json',
+  'scripts/hosted-windows-path-policy.js',
+  'scripts/unicode-casefold.js',
   'src/commands/gjones/mycommand.js',
   'tests/audit-policy.test.js',
   'tests/command-output.test.js',
   'tests/consumer-audit.test.js',
   'tests/helpers/packed-consumer.js',
+  'tests/hosted-windows-path-policy.test.js',
   'tests/oclif-command-smoke.test.js',
   'tests/packed-consumer-security.test.js',
+  'tests/trusted-hosted-windows-verifier.test.js',
   'tests/twilio-cli-host-compatibility.test.js',
-  'tests/unsafe-yaml-payload.test.js'
+  'tests/unicode-casefold-integrity.test.js',
+  'tests/unsafe-yaml-payload.test.js',
+  'vendor/unicode/17.0.0/CaseFolding.txt'
 ];
+const PARENT_CONTROLLED_ENTRIES = {
+  '.gitattributes': { mode: '100644', blob: '391f0a4e4b04a8b63e39431a8444e58f84214805' },
+  '.github/workflows/check.yml': { mode: '100644', blob: 'a38665cd7aff23f1024aebad05ac3c049501cb17' },
+  'bin/run': { mode: '100755', blob: 'fb2c4e1e1e05ef9c9a1decc90e85d64d074dafad' },
+  'bin/run.cmd': { mode: '100644', blob: '968fc30758e686d7c4a569f87580ccd310d0b152' }
+};
 
 function read(relativePath) {
   return fs.readFileSync(`${ROOT}${path.sep}${relativePath}`, 'utf8').replace(/\r\n/g, '\n');
@@ -42,7 +62,37 @@ function isExecutable(relativePath) {
   return Boolean(fs.statSync(`${ROOT}${path.sep}${relativePath}`).mode & 0o111);
 }
 
+function currentTrackedEntry(relativePath) {
+  const result = spawnSync('git', ['ls-files', '--stage', '--', relativePath], {
+    cwd: ROOT,
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024
+  });
+  if (result.status !== 0) throw new Error(`git ls-files failed for ${relativePath}: ${result.stderr.trim()}`);
+  const match = result.stdout.match(/^([0-7]{6}) ([0-9a-f]{40,64}) \d+\t/);
+  if (!match) throw new Error(`git ls-files did not return a tracked entry for ${relativePath}`);
+  return { mode: match[1], blob: match[2] };
+}
+
+function runHostedWindowsTreeCheck(treeish) {
+  const failures = validateHostedWindowsGitTree({ repoRoot: ROOT, treeish });
+  if (failures.length > 0) {
+    reportHostedWindowsPathFailures(failures);
+    process.exitCode = 1;
+    return;
+  }
+  console.log(`Hosted Windows path policy passed for ${treeish}.`);
+}
+
 function main() {
+  const treeCheckIndex = process.argv.indexOf('--check-git-tree');
+  if (treeCheckIndex !== -1) {
+    const treeish = process.argv[treeCheckIndex + 1];
+    if (!treeish) throw new Error('--check-git-tree requires a tree object');
+    runHostedWindowsTreeCheck(treeish);
+    return;
+  }
+
   const failures = [];
   for (const file of REQUIRED) {
     if (!fs.existsSync(`${ROOT}${path.sep}${file}`)) failures.push(`required file missing: ${file}`);
@@ -84,10 +134,13 @@ function main() {
     failures.push(`development graph must resolve only js-yaml 4.2.0, received ${yamlVersions.join(', ')}`);
   }
 
-  const expectedTest = 'npm run check && npm run test:audit && npm run test:consumer && npm run test:packed && npm run test:yaml && npm run test:compatibility && npm run test:command && npm run test:oclif';
+  const expectedTest = 'npm run check && npm run test:unicode && npm run test:windows-paths && npm run test:trusted && npm run test:audit && npm run test:consumer && npm run test:packed && npm run test:yaml && npm run test:compatibility && npm run test:command && npm run test:oclif';
   if (pkg.scripts.test !== expectedTest) failures.push('npm test must run every local security and behavior regression');
   for (const [name, command] of Object.entries({
     check: 'node scripts/check-baseline.js',
+    'test:unicode': 'node tests/unicode-casefold-integrity.test.js',
+    'test:windows-paths': 'node tests/hosted-windows-path-policy.test.js',
+    'test:trusted': 'node tests/trusted-hosted-windows-verifier.test.js',
     'test:audit': 'node tests/audit-policy.test.js',
     'test:consumer': 'node tests/consumer-audit.test.js',
     'test:packed': 'node tests/packed-consumer-security.test.js',
@@ -159,6 +212,30 @@ function main() {
   }
   if (/^\s+[\w-]+:\s+write\s*$/m.test(workflow)) failures.push('workflow must not grant write permissions');
 
+  const trustedWorkflow = read('.github/workflows/trusted-hosted-windows-path-policy.yml');
+  for (const phrase of [
+    'pull_request_target:',
+    'permissions:\n  contents: read\n  pull-requests: read',
+    'persist-credentials: false',
+    'git fetch --no-tags --filter=blob:none pr "$HEAD_SHA"',
+    'node .github/trusted/verify-hosted-windows-path-policy.js "$HEAD_SHA^{tree}"'
+  ]) {
+    if (!trustedWorkflow.includes(phrase)) failures.push(`trusted workflow must include ${phrase}`);
+  }
+  if (/^\s+[\w-]+:\s+write\s*$/m.test(trustedWorkflow)) failures.push('trusted workflow must not grant write permissions');
+  if (/npm (ci|install|test|run)/.test(trustedWorkflow)) failures.push('trusted workflow must not install or run pull-request code');
+  if (/ref: \$\{\{ github\.event\.pull_request\.head/.test(trustedWorkflow)) {
+    failures.push('trusted workflow must not check out the pull request head');
+  }
+
+  const trustedVerifier = read('.github/trusted/verify-hosted-windows-path-policy.js');
+  if (!trustedVerifier.includes("require('../../scripts/hosted-windows-path-policy')")) {
+    failures.push('trusted verifier must use the same hosted Windows path policy module as the checker');
+  }
+  if (trustedVerifier.includes("require('../../tests/") || trustedVerifier.includes('child_process')) {
+    failures.push('trusted verifier must stay independent from tests and process execution helpers');
+  }
+
   const docs = ['README.md', 'SECURITY.md', 'CHANGES.md'].map(read).join('\n');
   for (const phrase of [
     'plugin-owned',
@@ -174,6 +251,17 @@ function main() {
 
   if (read('.nvmrc').trim() !== '24') failures.push('.nvmrc must retain Node 24 as the default baseline');
   if (read('.github/CODEOWNERS').trim() !== '* @garethpaul') failures.push('CODEOWNERS must retain @garethpaul');
+
+  for (const [file, expected] of Object.entries(PARENT_CONTROLLED_ENTRIES)) {
+    const actual = currentTrackedEntry(file);
+    if (actual.blob !== expected.blob || actual.mode !== expected.mode) {
+      failures.push(`${file} must retain parent blob ${expected.blob} and mode ${expected.mode}`);
+    }
+  }
+
+  for (const failure of validateHostedWindowsGitTree({ repoRoot: ROOT, treeish: 'HEAD' })) {
+    failures.push(`hosted Windows path policy: ${failure}`);
+  }
 
   if (failures.length > 0) {
     console.error('plugin-gjones baseline check failed:');
