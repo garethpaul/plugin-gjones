@@ -1,7 +1,10 @@
 .PHONY: build check lint test verify
 
 NPM ?= npm
-ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+ifneq ($(origin MAKEFILE_LIST),file)
+$(error MAKEFILE_LIST must not be overridden)
+endif
+override ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
 lint:
 	cd "$(ROOT)" && $(NPM) run lint
