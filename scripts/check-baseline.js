@@ -94,8 +94,14 @@ function main() {
     if (!fs.existsSync(`${ROOT}${path.sep}${file}`)) failures.push(`required file missing: ${file}`);
   }
 
-  if (!read('Makefile').includes('override ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))')) {
-    failures.push('Makefile must protect the repository root from caller overrides');
+  for (const phrase of [
+    'ifneq ($(origin MAKEFILE_LIST),file)',
+    '$(error MAKEFILE_LIST must not be overridden)',
+    'override ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))'
+  ]) {
+    if (!read('Makefile').includes(phrase)) {
+      failures.push(`Makefile must protect the repository root with ${phrase}`);
+    }
   }
 
   const pkg = JSON.parse(read('package.json'));
