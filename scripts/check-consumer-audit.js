@@ -8,6 +8,7 @@ const { spawnSync } = require('child_process');
 const { validateAuditReport } = require('./check-audit');
 
 const ROOT = path.resolve(__dirname, '..');
+const NPM = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
 function auditSpawnOptions(platform = process.platform) {
   return {
@@ -37,8 +38,24 @@ function parseAuditOutput(result) {
   }
 }
 
-function run(npm, args, options = {}) {
-  const result = spawnSync(npm, args, {
+function validatePackedManifest(manifest, pluginRoot) {
+  const failures = [];
+  if (Object.prototype.hasOwnProperty.call(manifest, 'dependencies')) {
+    failures.push('packed plugin must not own runtime dependencies');
+  }
+  if (Object.prototype.hasOwnProperty.call(manifest, 'overrides')) {
+    failures.push('packed plugin must not publish dependency overrides');
+  }
+  for (const relativePath of ['bin/run', 'bin/run.cmd', 'src/js-yaml-compat.js', 'node_modules']) {
+    if (fs.existsSync(`${pluginRoot}${path.sep}${relativePath}`)) {
+      failures.push(`packed plugin must not contain ${relativePath}`);
+    }
+  }
+  return failures;
+}
+
+function run(args, options = {}) {
+  const result = spawnSync(NPM, args, {
     ...auditSpawnOptions(),
     ...options,
     env: {
@@ -52,7 +69,6 @@ function run(npm, args, options = {}) {
 }
 
 function main() {
-  const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
   const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'plugin-gjones-consumer-'));
   const packDirectory = path.join(temporaryRoot, 'pack');
   const consumerDirectory = path.join(temporaryRoot, 'consumer');
@@ -66,7 +82,7 @@ function main() {
       { mode: 0o600 }
     );
 
-    const pack = run(npm, ['pack', '--pack-destination', packDirectory], { cwd: ROOT });
+    const pack = run(['pack', '--pack-destination', packDirectory], { cwd: ROOT });
     if (pack.status !== 0) throw new Error(pack.stderr || pack.stdout || 'npm pack failed');
 
     const artifact = findPackedArtifact(fs.readdirSync(packDirectory));
@@ -75,16 +91,21 @@ function main() {
       throw new Error('packed plugin exceeds the reviewed 1 MiB limit');
     }
 
-    const install = run(npm, ['install', '--ignore-scripts', '--no-fund', artifactPath], { cwd: consumerDirectory });
+    const install = run(['install', '--ignore-scripts', '--no-audit', '--no-fund', artifactPath], { cwd: consumerDirectory });
     if (install.status !== 0) throw new Error(install.stderr || install.stdout || 'consumer install failed');
 
-    const audit = run(npm, ['audit', '--audit-level=low', '--json'], { cwd: consumerDirectory });
-    const failures = validateAuditReport(parseAuditOutput(audit), { consumer: true });
+    const pluginRoot = path.join(consumerDirectory, 'node_modules/@garethpaul/plugin-gjones');
+    const manifest = JSON.parse(fs.readFileSync(path.join(pluginRoot, 'package.json'), 'utf8'));
+    const failures = validatePackedManifest(manifest, pluginRoot);
+    const audit = run(['audit', '--audit-level=low', '--json'], { cwd: consumerDirectory });
+    failures.push(...validateAuditReport(parseAuditOutput(audit)));
+    if (audit.status !== 0) failures.push(`packed consumer npm audit exited ${audit.status}`);
+
     if (failures.length > 0) {
       throw new Error(`packed consumer audit policy failed:\n- ${failures.join('\n- ')}`);
     }
 
-    console.log('packed consumer audit matched the reviewed upstream advisory boundary.');
+    console.log('packed consumer audit reported zero plugin-owned findings.');
   } finally {
     fs.rmSync(temporaryRoot, { force: true, recursive: true });
   }
@@ -99,4 +120,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { auditSpawnOptions, findPackedArtifact, parseAuditOutput };
+module.exports = { auditSpawnOptions, findPackedArtifact, parseAuditOutput, validatePackedManifest };

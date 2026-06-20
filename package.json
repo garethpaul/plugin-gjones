@@ -4,20 +4,10 @@
   "version": "1.0.0",
   "author": "@garethpaul",
   "bugs": "https://github.com/garethpaul/plugin-gjones/issues",
-  "dependencies": {
-    "@oclif/core": "^1.26.2",
-    "@twilio/cli-core": "^8.3.4"
-  },
   "engines": {
     "node": ">=20.0.0"
   },
-  "overrides": {
-    "form-data": "4.0.6",
-    "js-yaml": "4.2.0",
-    "undici": "6.27.0"
-  },
   "files": [
-    "/bin",
     "/oclif.manifest.json",
     "/src"
   ],
@@ -26,6 +16,18 @@
     "oclif-plugin"
   ],
   "license": "MIT",
+  "peerDependencies": {
+    "@oclif/core": ">=1.26.2 <5",
+    "@twilio/cli-core": ">=8.3.2 <9"
+  },
+  "peerDependenciesMeta": {
+    "@oclif/core": {
+      "optional": true
+    },
+    "@twilio/cli-core": {
+      "optional": true
+    }
+  },
   "oclif": {
     "name": "gjones",
     "commands": "./src/commands",
@@ -50,16 +52,24 @@
     "lint": "npm run check",
     "postpack": "node -e \"require('fs').rmSync('oclif.manifest.json', {force: true})\"",
     "prepack": "oclif manifest && oclif readme",
-    "test": "npm run check && npm run test:audit && npm run test:consumer && npm run test:compatibility && npm run test:command && npm run test:oclif",
+    "test": "npm run check && npm run test:unicode && npm run test:windows-paths && npm run test:trusted && npm run test:audit && npm run test:consumer && npm run test:packed && npm run test:yaml && npm run test:compatibility && npm run test:command && npm run test:oclif",
     "audit:consumer": "node scripts/check-consumer-audit.js",
+    "test:unicode": "node tests/unicode-casefold-integrity.test.js",
+    "test:windows-paths": "node tests/hosted-windows-path-policy.test.js",
+    "test:trusted": "node tests/trusted-hosted-windows-verifier.test.js",
     "test:audit": "node tests/audit-policy.test.js",
     "test:consumer": "node tests/consumer-audit.test.js",
+    "test:packed": "node tests/packed-consumer-security.test.js",
+    "test:yaml": "node tests/unsafe-yaml-payload.test.js",
     "test:compatibility": "node tests/twilio-cli-host-compatibility.test.js",
     "test:command": "node tests/command-output.test.js",
     "test:oclif": "node tests/oclif-command-smoke.test.js",
+    "verify:twilio-host": "node scripts/check-real-twilio-host.js",
     "version": "oclif readme && git add README.md"
   },
   "devDependencies": {
+    "@oclif/core": "^4.11.7",
+    "js-yaml": "4.2.0",
     "oclif": "^4.23.14"
   }
 }

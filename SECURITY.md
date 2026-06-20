@@ -46,21 +46,21 @@ numbers, or customer data unexpectedly.
 
 Pinned, credential-free, read-only hosted Linux and Windows validation uses the
 reviewed lockfile, disables lifecycle scripts during installation, runs static,
-command-output, and installed launcher tests, audits the full dependency graph,
-and validates package contents without using Twilio credentials.
+command-output, local Oclif, packed-consumer, and unsafe-YAML tests, audits the
+full development graph, and validates package contents without credentials.
 
-The reviewed graph pins `form-data 4.0.6`, `undici 6.27.0`, and
-`js-yaml 4.2.0`. A launcher preload maps the removed `safeLoad` and `safeDump`
-aliases to js-yaml 4's safe-by-default `load` and `dump` APIs before the
-compatible oclif core 1.x host starts. Hosted validation uses a fail-closed JSON
-policy that requires zero known vulnerabilities across the repository's full
-dependency graph. The packed consumer audit separately permits only the exact
-moderate js-yaml advisory chain inherited from Twilio CLI Core 8.3.4 and rejects
-new packages, paths, severities, inconsistent counts, or malformed reports. npm
-does not apply dependency-package overrides to downstream installations.
-Packed or published consumers remain vulnerable to that advisory until the
-Twilio/oclif host line stops resolving js-yaml 3.x. The repository-only override
-and launcher preload must not be presented as a downstream fix.
+The packed plugin owns no runtime dependencies, overrides, nested
+`node_modules`, launcher, YAML preload, or process-global monkeypatch. Oclif and
+Twilio CLI Core are optional peer contracts supplied by the real loading host.
+Both repository and packed-consumer audit policies require zero findings and
+reject malformed reports, advisory allowlists, and inherited plugin paths.
+
+Twilio CLI 6.2.4 independently installs `js-yaml 3.14.2` and other vulnerable
+packages. Those advisories are host-owned: the real-host verifier reports them
+separately and confirms they are not attributed to this plugin. Fixing the host
+graph requires a coordinated Twilio/Oclif migration; plugin overrides or a
+`safeLoad`/`safeDump` preload cannot repair that package boundary and must not be
+restored.
 
 Dependency updates should come from trusted package managers and should keep lockfiles in sync when lockfiles exist. Do not commit credentials, private keys, tokens, generated secrets, or machine-local configuration. If a vulnerability depends on a compromised package, typosquatting risk, insecure transitive dependency, or unsafe build step, include the package name, affected version, and the path through which it is used.
 
@@ -68,13 +68,13 @@ Run `npm run check`, `npm run lint`, `npm run build`, `make lint`,
 `make build`, and `make check` before changing command behavior, package
 scripts, CI, or credential-adjacent Twilio CLI behavior.
 Node 24 is the default local toolchain in `.nvmrc`; the supported runtime matrix
-is Node 20, 22, and 24. Keep `package.json` engines, `package-lock.json`, and
-GitHub Actions aligned. Keep `@oclif/core` compatible with Twilio CLI Core
-8.3.4, keep the low-threshold root audit at zero and the packed-consumer audit
-pinned to the reviewed upstream boundary, and do not restore AppVeyor or archived
-direct oclif tools.
+is Node 20, 22, 24, and 25. Keep `package.json` engines, `package-lock.json`, and
+GitHub Actions aligned. Keep both low-threshold audits at zero and do not
+restore plugin-owned host dependencies, advisory exceptions, AppVeyor, or
+archived direct Oclif tools.
 
-The supported plugin host boundary is Twilio CLI `>=6.0.0 <7.0.0` on Node 20, 22, and 24.
+The supported plugin host boundary is Twilio CLI `>=6.0.0 <7.0.0` on Node 20,
+22, 24, and 25.
 Twilio CLI 5.x and earlier Node runtimes are unsupported. Treat any
 future host-major expansion as a compatibility and security review because the
 plugin runs inside the user's authenticated CLI process. Current tests cover
@@ -89,13 +89,12 @@ Keep the immutable output export aligned with the command so consumers cannot
 replace public metadata independently of runtime behavior.
 Keep command description metadata covered by the command execution test so the
 help surface remains reviewable.
-Keep `bin/run` as the executable launcher and avoid permission churn in
-packaging files, because broken launcher metadata can change how users run the
-plugin scaffold.
+Keep `bin/run` as the executable local development launcher and avoid permission
+churn. Published artifacts must continue to exclude both launchers.
 Keep the Windows launcher wrapper as a quiet delegation to the adjacent Node
 launcher so Windows installs run the same reviewed entry point as local tests.
-Keep packaged launcher files included in `package.json` so published installs
-match the reviewed local launcher behavior.
+Keep packaged launcher files excluded from `package.json` so the plugin cannot
+own a private Oclif/Twilio runtime path.
 Keep the package description aligned with the credential-free Twilio CLI plugin
 scaffold purpose so published metadata does not imply hidden account behavior.
 

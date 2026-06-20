@@ -1,5 +1,20 @@
 # Changes
 
+## 2026-06-20 live-default replacement repair
+
+- Removed every plugin-owned Oclif, Twilio CLI Core, launcher, override, and
+  preload path from the packed artifact; compatible host APIs are optional peer
+  contracts instead of runtime dependencies.
+- Deleted the advisory allowlist and false-green consumer policy. Repository and
+  packed-consumer npm audits now require zero findings.
+- Added test-first packed-consumer and unsafe-YAML regressions that reject
+  `js-yaml 3.14.2`, `!!js/function`, safe-API replacement, and nested plugin
+  dependencies.
+- Preserved `Hello World Test!` through real Twilio CLI 6.2.4 while explicitly
+  reporting its independent advisory graph as host-owned rather than fixed by
+  this plugin.
+- Expanded the hosted Linux and Windows matrix to Node 20, 22, 24, and 25.
+
 ## 2026-06-19 deep review
 
 - Documented Twilio CLI `>=6.0.0 <7.0.0` on Node 20, 22, and 24 as the supported

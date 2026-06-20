@@ -21,14 +21,7 @@ const TEST_ENV = {
   XDG_CONFIG_HOME: path.join(TEST_HOME, '.config'),
   XDG_DATA_HOME: path.join(TEST_HOME, '.local', 'share')
 };
-const yaml = require('../src/js-yaml-compat');
-
 process.on('exit', () => fs.rmSync(TEST_HOME, { force: true, recursive: true }));
-
-assert.strictEqual(yaml.safeLoad, yaml.load);
-assert.strictEqual(yaml.safeDump, yaml.dump);
-assert.strictEqual(yaml.safeLoad('enabled: true').enabled, true);
-assert.match(yaml.safeDump({ enabled: true }), /enabled: true/);
 
 function runCli(args) {
   const result = spawnSync(process.execPath, [RUN, ...args], {

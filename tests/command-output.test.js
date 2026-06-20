@@ -16,14 +16,16 @@ const readme = fs.readFileSync(README, 'utf8');
 const match = source.match(/const OUTPUT_MESSAGE = '([^']+)';/);
 
 function loadCommand() {
-  const sandbox = {
-    module: { exports: {} },
+  const hostModule = {
     require(name) {
       if (name === '@oclif/core') {
         return { Command: class {} };
       }
-      throw new Error(`unexpected require: ${name}`);
+      throw new Error(`unexpected host require: ${name}`);
     }
+  };
+  const sandbox = {
+    module: { exports: {}, parent: hostModule }
   };
   sandbox.exports = sandbox.module.exports;
 

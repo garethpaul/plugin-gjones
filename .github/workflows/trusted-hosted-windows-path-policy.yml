@@ -1,0 +1,54 @@
+name: Trusted Hosted Windows Path Policy
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  verify:
+    name: verify PR tree paths
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out trusted verifier
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.base.sha }}
+
+      - name: Set up trusted Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.1.0
+        with:
+          node-version: 24
+
+      - name: Fetch pull request head as data
+        env:
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_GIT_DIR: ${{ runner.temp }}/pr.git
+        run: |
+          case "$HEAD_SHA" in
+            ""|*[!0-9a-fA-F]*) exit 1 ;;
+          esac
+          case "$HEAD_REPO" in
+            ""|*[!A-Za-z0-9_.\\/-]*) exit 1 ;;
+          esac
+          git init --bare "$PR_GIT_DIR"
+          git --git-dir="$PR_GIT_DIR" remote add pr "$GITHUB_SERVER_URL/$HEAD_REPO.git"
+          git --git-dir="$PR_GIT_DIR" \
+            -c protocol.version=2 \
+            -c core.hooksPath=/dev/null \
+            -c protocol.file.allow=never \
+            fetch --no-tags --filter=blob:none pr \
+            "$HEAD_SHA:refs/trusted/head"
+          test "$(git --git-dir="$PR_GIT_DIR" rev-parse refs/trusted/head)" = "$HEAD_SHA"
+
+      - name: Verify hosted Windows path policy
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_GIT_DIR: ${{ runner.temp }}/pr.git
+        run: node .github/trusted/verify-hosted-windows-path-policy.js "$PR_GIT_DIR" "$HEAD_SHA^{tree}"

@@ -1,4 +1,4 @@
-const { Command } = require('@oclif/core');
+const { Command } = module.parent.require('@oclif/core');
 
 const OUTPUT_MESSAGE = 'Hello World Test!';
 
