@@ -58,10 +58,6 @@ function read(relativePath) {
   return fs.readFileSync(`${ROOT}${path.sep}${relativePath}`, 'utf8').replace(/\r\n/g, '\n');
 }
 
-function isExecutable(relativePath) {
-  return Boolean(fs.statSync(`${ROOT}${path.sep}${relativePath}`).mode & 0o111);
-}
-
 function currentTrackedEntry(relativePath) {
   const result = spawnSync('git', ['ls-files', '--stage', '--', relativePath], {
     cwd: ROOT,
@@ -176,7 +172,9 @@ function main() {
     if (launcher.includes(forbidden)) failures.push(`local launcher must not include ${forbidden}`);
   }
   if (!launcher.includes("require('@oclif/core')")) failures.push('local launcher must use the audited development Oclif');
-  if (!isExecutable('bin/run')) failures.push('local Unix launcher must remain executable');
+  if (currentTrackedEntry('bin/run').mode !== '100755') {
+    failures.push('local Unix launcher must remain executable');
+  }
   if (!read('bin/run.cmd').includes('node "%~dp0\\run" %*')) failures.push('Windows launcher must delegate to bin/run');
 
   for (const file of REQUIRED.filter(file => file.endsWith('.js'))) {
@@ -217,8 +215,10 @@ function main() {
     'pull_request_target:',
     'permissions:\n  contents: read\n  pull-requests: read',
     'persist-credentials: false',
-    'git fetch --no-tags --filter=blob:none pr "$HEAD_SHA"',
-    'node .github/trusted/verify-hosted-windows-path-policy.js "$HEAD_SHA^{tree}"'
+    'ref: ${{ github.event.pull_request.base.sha }}',
+    'git init --bare "$PR_GIT_DIR"',
+    '"$HEAD_SHA:refs/trusted/head"',
+    'node .github/trusted/verify-hosted-windows-path-policy.js "$PR_GIT_DIR" "$HEAD_SHA^{tree}"'
   ]) {
     if (!trustedWorkflow.includes(phrase)) failures.push(`trusted workflow must include ${phrase}`);
   }

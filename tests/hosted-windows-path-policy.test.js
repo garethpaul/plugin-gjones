@@ -2,10 +2,15 @@
 'use strict';
 
 const assert = require('assert');
+const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
 const root = path.resolve(__dirname, '..');
+const baseline = fs.readFileSync(path.join(root, 'scripts/check-baseline.js'), 'utf8');
+
+assert.doesNotMatch(baseline, /fs\.statSync\([^\n]+\)\.mode/);
+assert.match(baseline, /currentTrackedEntry\('bin\/run'\)\.mode !== '100755'/);
 
 function git(args, options = {}) {
   const result = spawnSync('git', args, {

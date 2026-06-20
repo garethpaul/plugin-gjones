@@ -40,15 +40,16 @@ function safeTreeish(treeish) {
   return treeish === 'HEAD' || /^[0-9a-fA-F]{40,64}(?:\^\{tree\})?$/.test(treeish);
 }
 
-function git(repoRoot, args) {
-  const result = spawnSync('git', args, {
+function git(repoRoot, args, gitDir) {
+  const commandArgs = gitDir ? [`--git-dir=${gitDir}`, ...args] : args;
+  const result = spawnSync('git', commandArgs, {
     cwd: repoRoot,
     encoding: 'buffer',
     maxBuffer: 50 * 1024 * 1024
   });
   if (result.status !== 0) {
     const stderr = result.stderr.toString('utf8').trim();
-    throw new Error(stderr || `git ${args.join(' ')} exited ${result.status}`);
+    throw new Error(stderr || `git ${commandArgs.join(' ')} exited ${result.status}`);
   }
   return result.stdout;
 }
@@ -85,9 +86,9 @@ function parseLsTree(output) {
   });
 }
 
-function gitTreeEntries(repoRoot, treeish) {
+function gitTreeEntries(repoRoot, treeish, gitDir) {
   if (!safeTreeish(treeish)) throw new Error(`unsafe git tree-ish: ${treeish}`);
-  return parseLsTree(git(repoRoot, ['ls-tree', '-rz', '-r', '-t', '--full-tree', treeish]));
+  return parseLsTree(git(repoRoot, ['ls-tree', '-rz', '-r', '-t', '--full-tree', treeish], gitDir));
 }
 
 function windowsPathKey(filePath) {
@@ -125,6 +126,7 @@ function validateWindowsSegment(segment, filePath) {
 
 function validateHostedWindowsGitTree(options = {}) {
   const repoRoot = options.repoRoot || ROOT;
+  const gitDir = options.gitDir;
   const treeish = options.treeish || 'HEAD';
   const failures = [];
 
@@ -136,7 +138,7 @@ function validateHostedWindowsGitTree(options = {}) {
 
   let entries;
   try {
-    entries = gitTreeEntries(repoRoot, treeish);
+    entries = gitTreeEntries(repoRoot, treeish, gitDir);
   } catch (error) {
     return [`hosted Windows path policy could not read git tree ${treeish}: ${error.message}`];
   }

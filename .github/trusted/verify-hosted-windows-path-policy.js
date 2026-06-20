@@ -1,16 +1,21 @@
 #!/usr/bin/env node
 'use strict';
 
+const path = require('path');
 const {
   reportHostedWindowsPathFailures,
   validateHostedWindowsGitTree
 } = require('../../scripts/hosted-windows-path-policy');
 
 function main() {
-  const treeish = process.argv[2];
-  if (!treeish) throw new Error('usage: verify-hosted-windows-path-policy.js <tree-ish>');
+  const gitDir = process.argv[2];
+  const treeish = process.argv[3];
+  if (!gitDir || !treeish) {
+    throw new Error('usage: verify-hosted-windows-path-policy.js <git-dir> <tree-ish>');
+  }
+  if (!path.isAbsolute(gitDir)) throw new Error('git directory must be an absolute path');
 
-  const failures = validateHostedWindowsGitTree({ treeish });
+  const failures = validateHostedWindowsGitTree({ gitDir, treeish });
   if (failures.length > 0) {
     reportHostedWindowsPathFailures(failures);
     process.exitCode = 1;
