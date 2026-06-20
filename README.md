@@ -110,7 +110,9 @@ Detected npm scripts:
 Pinned, credential-free hosted Linux and Windows validation reads Node 24 from
 `.nvmrc`, installs the reviewed lockfile with lifecycle scripts disabled, runs
 the complete test suite, audits the full dependency graph, and validates package
-contents.
+contents. The reviewed graph pins `form-data 4.0.6`, `undici 6.27.0`, and
+`js-yaml 4.2.0`; its fail-closed JSON policy requires zero known
+vulnerabilities across production dependencies and development tooling.
 
 - `make check`
 - `make lint`

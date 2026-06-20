@@ -3,54 +3,22 @@
 
 const { spawnSync } = require('child_process');
 
-const EXPECTED_PACKAGES = [
-  '@oclif/core',
-  '@oclif/plugin-help',
-  '@oclif/plugin-plugins',
-  '@twilio/cli-core',
-  'js-yaml'
-];
-const EXPECTED_ADVISORY = 'https://github.com/advisories/GHSA-h67p-54hq-rp68';
-const EXPECTED_VIA = {
-  '@oclif/core': ['js-yaml'],
-  '@oclif/plugin-help': ['@oclif/core'],
-  '@oclif/plugin-plugins': ['@oclif/core'],
-  '@twilio/cli-core': ['@oclif/core', '@oclif/plugin-plugins']
-};
-
 function validateAuditReport(report) {
   const failures = [];
   const counts = report?.metadata?.vulnerabilities;
-  const expectedCounts = { info: 0, low: 0, moderate: 5, high: 0, critical: 0, total: 5 };
+  const expectedCounts = { info: 0, low: 0, moderate: 0, high: 0, critical: 0, total: 0 };
 
   if (JSON.stringify(counts) !== JSON.stringify(expectedCounts)) {
     failures.push(`expected vulnerability counts ${JSON.stringify(expectedCounts)}, received ${JSON.stringify(counts)}`);
   }
 
   const vulnerabilities = report?.vulnerabilities;
-  const packageNames = vulnerabilities && typeof vulnerabilities === 'object'
-    ? Object.keys(vulnerabilities).sort()
-    : [];
-  if (JSON.stringify(packageNames) !== JSON.stringify(EXPECTED_PACKAGES)) {
-    failures.push(`expected only ${EXPECTED_PACKAGES.join(', ')}, received ${packageNames.join(', ') || 'none'}`);
+  if (!vulnerabilities || typeof vulnerabilities !== 'object' || Array.isArray(vulnerabilities)) {
+    failures.push('audit report must include a vulnerable-package map');
   }
-
-  for (const packageName of EXPECTED_PACKAGES) {
-    const vulnerability = vulnerabilities?.[packageName];
-    if (!vulnerability || vulnerability.severity !== 'moderate') {
-      failures.push(`${packageName} must remain an explicitly reviewed moderate finding`);
-    }
-  }
-
-  for (const [packageName, expectedVia] of Object.entries(EXPECTED_VIA)) {
-    if (JSON.stringify(vulnerabilities?.[packageName]?.via) !== JSON.stringify(expectedVia)) {
-      failures.push(`${packageName} must inherit only the reviewed js-yaml advisory chain`);
-    }
-  }
-
-  const jsYamlAdvisories = vulnerabilities?.['js-yaml']?.via?.filter(item => typeof item === 'object') || [];
-  if (jsYamlAdvisories.length !== 1 || jsYamlAdvisories[0].url !== EXPECTED_ADVISORY) {
-    failures.push(`js-yaml must be linked only to ${EXPECTED_ADVISORY}`);
+  const packageNames = vulnerabilities && typeof vulnerabilities === 'object' ? Object.keys(vulnerabilities) : [];
+  if (packageNames.length !== 0) {
+    failures.push(`expected no vulnerable packages, received ${packageNames.sort().join(', ')}`);
   }
 
   return failures;
@@ -88,7 +56,7 @@ function main() {
     return;
   }
 
-  console.log(`Dependency audit matched the reviewed upstream blocker: ${EXPECTED_ADVISORY}.`);
+  console.log('Dependency audit reported zero known vulnerabilities.');
 }
 
 if (require.main === module) {
@@ -100,4 +68,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { EXPECTED_ADVISORY, auditSpawnOptions, validateAuditReport };
+module.exports = { auditSpawnOptions, validateAuditReport };

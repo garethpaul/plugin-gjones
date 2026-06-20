@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+require('../src/js-yaml-compat');
+
 // Load oclif first so this plugin remains the parent command package.
 const { Errors, flush, run } = require('@oclif/core');
 

@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-06-20
+
+- Pinned transitive `js-yaml` to 4.2.0 and preloaded the safe-by-default
+  `load`/`dump` APIs under the legacy oclif `safeLoad`/`safeDump` aliases.
+- Replaced the reviewed advisory allowance with a fail-closed audit policy that
+  requires zero known vulnerabilities across the complete dependency graph.
+
 ## 2026-06-19
 
 - Pinned transitive `undici` to 6.27.0 to remove the newly disclosed request
