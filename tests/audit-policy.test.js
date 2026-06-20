@@ -4,67 +4,60 @@
 const assert = require('assert');
 const { EXPECTED_ADVISORY, auditSpawnOptions, validateAuditReport } = require('../scripts/check-audit');
 
-function reviewedReport({ consumer = false } = {}) {
-  const vulnerabilities = {
-    '@oclif/core': { name: '@oclif/core', severity: 'moderate', via: ['js-yaml'] },
-    '@oclif/plugin-help': { name: '@oclif/plugin-help', severity: 'moderate', via: ['@oclif/core'] },
-    '@oclif/plugin-plugins': { name: '@oclif/plugin-plugins', severity: 'moderate', via: ['@oclif/core'] },
-    '@twilio/cli-core': {
-      name: '@twilio/cli-core',
-      severity: 'moderate',
-      via: ['@oclif/core', '@oclif/plugin-plugins']
-    },
-    'js-yaml': {
-      name: 'js-yaml',
-      severity: 'moderate',
-      via: [{ url: EXPECTED_ADVISORY, severity: 'moderate' }]
-    }
-  };
-
-  if (consumer) {
-    vulnerabilities['@garethpaul/plugin-gjones'] = {
-      name: '@garethpaul/plugin-gjones',
-      severity: 'moderate',
-      via: ['@oclif/core', '@twilio/cli-core']
-    };
-  }
-
-  const moderate = consumer ? 6 : 5;
+function cleanReport() {
   return {
     metadata: {
-      vulnerabilities: { info: 0, low: 0, moderate, high: 0, critical: 0, total: moderate }
+      vulnerabilities: { info: 0, low: 0, moderate: 0, high: 0, critical: 0, total: 0 }
     },
-    vulnerabilities
+    vulnerabilities: {}
   };
 }
 
-assert.deepStrictEqual(validateAuditReport(reviewedReport()), []);
-assert.deepStrictEqual(validateAuditReport(reviewedReport({ consumer: true }), { consumer: true }), []);
+function reviewedConsumerReport() {
+  return {
+    metadata: {
+      vulnerabilities: { info: 0, low: 0, moderate: 6, high: 0, critical: 0, total: 6 }
+    },
+    vulnerabilities: {
+      '@garethpaul/plugin-gjones': { severity: 'moderate', via: ['@oclif/core', '@twilio/cli-core'] },
+      '@oclif/core': { severity: 'moderate', via: ['js-yaml'] },
+      '@oclif/plugin-help': { severity: 'moderate', via: ['@oclif/core'] },
+      '@oclif/plugin-plugins': { severity: 'moderate', via: ['@oclif/core'] },
+      '@twilio/cli-core': { severity: 'moderate', via: ['@oclif/core', '@oclif/plugin-plugins'] },
+      'js-yaml': { severity: 'moderate', via: [{ url: EXPECTED_ADVISORY }] }
+    }
+  };
+}
+
+assert.deepStrictEqual(validateAuditReport(cleanReport()), []);
+assert.deepStrictEqual(validateAuditReport(reviewedConsumerReport(), { consumer: true }), []);
 assert.strictEqual(auditSpawnOptions('win32').shell, true);
 assert.strictEqual(auditSpawnOptions('linux').shell, false);
 
-const newHigh = reviewedReport();
+const newHigh = cleanReport();
 newHigh.metadata.vulnerabilities.high = 1;
-newHigh.metadata.vulnerabilities.total = 6;
+newHigh.metadata.vulnerabilities.total = 1;
 newHigh.vulnerabilities['new-high'] = { severity: 'high', via: [] };
 assert.ok(validateAuditReport(newHigh).length >= 2);
 
-const countOnlyFinding = reviewedReport();
-countOnlyFinding.metadata.vulnerabilities.moderate = 6;
-countOnlyFinding.metadata.vulnerabilities.total = 6;
+const countOnlyFinding = cleanReport();
+countOnlyFinding.metadata.vulnerabilities.moderate = 1;
+countOnlyFinding.metadata.vulnerabilities.total = 1;
 assert.ok(validateAuditReport(countOnlyFinding).some(failure => failure.includes('vulnerability counts')));
 
-const changedAdvisory = reviewedReport();
-changedAdvisory.vulnerabilities['js-yaml'].via[0].url = 'https://example.invalid/advisory';
-assert.ok(validateAuditReport(changedAdvisory).some(failure => failure.includes(EXPECTED_ADVISORY)));
+const packageOnlyFinding = cleanReport();
+packageOnlyFinding.vulnerabilities['js-yaml'] = { severity: 'moderate', via: [] };
+assert.ok(validateAuditReport(packageOnlyFinding).some(failure => failure.includes('js-yaml')));
 
-const additionalInheritedAdvisory = reviewedReport();
-additionalInheritedAdvisory.vulnerabilities['@oclif/core'].via.push({ url: 'https://example.invalid/new-advisory' });
-assert.ok(validateAuditReport(additionalInheritedAdvisory).some(failure => failure.includes('@oclif/core')));
+const newConsumerFinding = reviewedConsumerReport();
+newConsumerFinding.metadata.vulnerabilities.high = 1;
+newConsumerFinding.metadata.vulnerabilities.total = 7;
+newConsumerFinding.vulnerabilities['new-high'] = { severity: 'high', via: [] };
+assert.ok(validateAuditReport(newConsumerFinding, { consumer: true }).length >= 2);
 
-const missingPackage = reviewedReport();
-delete missingPackage.vulnerabilities['@oclif/plugin-help'];
-assert.ok(validateAuditReport(missingPackage).some(failure => failure.includes('@oclif/plugin-help')));
+const changedAdvisory = reviewedConsumerReport();
+changedAdvisory.vulnerabilities['js-yaml'].via[0].url = 'https://github.com/advisories/GHSA-replacement';
+assert.ok(validateAuditReport(changedAdvisory, { consumer: true }).some(failure => failure.includes('js-yaml')));
 
 assert.ok(validateAuditReport({}).length >= 2);
 

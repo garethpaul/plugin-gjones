@@ -62,6 +62,7 @@ const REQUIRED = [
   'scripts/check-baseline.js',
   'scripts/check-consumer-audit.js',
   'src/commands/gjones/mycommand.js',
+  'src/js-yaml-compat.js',
   'tests/audit-policy.test.js',
   'tests/command-output.test.js',
   'tests/consumer-audit.test.js',
@@ -111,8 +112,8 @@ function main() {
   if (JSON.stringify(pkg.devDependencies) !== JSON.stringify({ oclif: '^4.23.14' })) {
     failures.push('package.json must keep only the maintained oclif utility CLI as a direct development dependency');
   }
-  if (pkg.overrides !== undefined) {
-    failures.push('package.json must not claim consumer protection through root-only npm overrides');
+  if (JSON.stringify(pkg.overrides) !== JSON.stringify({ 'form-data': '4.0.6', 'js-yaml': '4.2.0', undici: '6.27.0' })) {
+    failures.push('package.json must pin the reviewed form-data, js-yaml, and undici advisory overrides');
   }
   for (const dependency of ['@oclif/command', '@oclif/config', '@oclif/dev-cli', '@oclif/test', '@twilio/cli-test', 'chai', 'eslint', 'eslint-config-oclif', 'globby', 'mocha', 'nyc']) {
     if (pkg.dependencies?.[dependency] || pkg.devDependencies?.[dependency]) {
@@ -123,11 +124,8 @@ function main() {
   if (lock.lockfileVersion !== 3 || lock.packages?.['']?.dependencies?.['@oclif/core'] !== '^1.26.2' || lock.packages?.['']?.dependencies?.['@twilio/cli-core'] !== '^8.3.4' || lock.packages?.['']?.devDependencies?.oclif !== '^4.23.14') {
     failures.push('package-lock.json must preserve the reviewed lockfileVersion 3 dependency graph');
   }
-  if (lock.packages?.['node_modules/form-data']?.version !== '4.0.6' ||
-      lock.packages?.['node_modules/undici']?.version !== '6.27.0' ||
-      lock.packages?.['node_modules/@oclif/core/node_modules/js-yaml']?.version !== '3.14.2' ||
-      lock.packages?.['node_modules/@oclif/plugin-help/node_modules/js-yaml']?.version !== '3.14.2') {
-    failures.push('package-lock.json must keep patched form-data/undici and the reviewed upstream js-yaml boundary');
+  if (lock.packages?.['node_modules/form-data']?.version !== '4.0.6' || lock.packages?.['node_modules/undici']?.version !== '6.27.0' || lock.packages?.['node_modules/js-yaml']?.version !== '4.2.0') {
+    failures.push('package-lock.json must patch form-data, js-yaml, and undici');
   }
   if (pkg.scripts.test !== 'npm run check && npm run test:audit && npm run test:consumer && npm run test:compatibility && npm run test:command && npm run test:oclif') {
     failures.push('npm test must run the static baseline, audit helpers, host compatibility, command output, and installed oclif smoke tests');
@@ -208,6 +206,7 @@ function main() {
     'scripts/check-baseline.js',
     'scripts/check-consumer-audit.js',
     'src/commands/gjones/mycommand.js',
+    'src/js-yaml-compat.js',
     'tests/audit-policy.test.js',
     'tests/command-output.test.js',
     'tests/consumer-audit.test.js',
@@ -269,8 +268,8 @@ function main() {
   }
 
   const launcher = read('bin/run');
-  if (launcher.includes('js-yaml-compat')) {
-    failures.push('bin/run must not claim a package-local shim protects consumer dependency graphs');
+  if (!launcher.includes("require('../src/js-yaml-compat')")) {
+    failures.push('bin/run must preload the js-yaml 4 compatibility aliases before oclif');
   }
   for (const phrase of ["require('@oclif/core')", 'const { Errors, flush, run }', 'run()', '.then(flush)', '.catch(Errors.handle)']) {
     if (!launcher.includes(phrase)) {
@@ -280,8 +279,9 @@ function main() {
   if (launcher.includes("require('@oclif/command')") || launcher.includes("require('@oclif/errors/handle')")) {
     failures.push('bin/run must not restore archived oclif launcher imports');
   }
-  if (fs.existsSync(path.join(ROOT, 'src/js-yaml-compat.js'))) {
-    failures.push('the ineffective js-yaml consumer compatibility shim must stay removed');
+  const yamlCompat = read('src/js-yaml-compat.js');
+  for (const phrase of ["require('js-yaml')", 'yaml.safeLoad = yaml.load', 'yaml.safeDump = yaml.dump']) {
+    if (!yamlCompat.includes(phrase)) failures.push(`js-yaml compatibility preload must include ${phrase}`);
   }
   const oclifSmokeTest = read('tests/oclif-command-smoke.test.js');
   for (const phrase of ['spawnSync', "['--help']", "['gjones:mycommand']", "'Hello World Test!\\n'", '/Credential-free plugin scaffold commands/']) {
@@ -362,10 +362,9 @@ function main() {
   for (const phrase of [
     "['audit', '--audit-level=low', '--json']",
     "shell: platform === 'win32'",
-    'const moderate = consumer ? 6 : 5',
-    'GHSA-h67p-54hq-rp68',
-    'expected vulnerable packages',
-    'Dependency audit matched the reviewed upstream advisory boundary.'
+    'moderate: 0, high: 0, critical: 0, total: 0',
+    'expected no vulnerable packages',
+    'Dependency audit reported zero known vulnerabilities.'
   ]) {
     if (!auditPolicy.includes(phrase)) failures.push(`dependency audit policy must keep ${phrase}`);
   }
@@ -428,8 +427,7 @@ function main() {
     ,'Credential-free plugin scaffold commands',
     'form-data 4.0.6',
     'undici 6.27.0',
-    'js-yaml 3.14.2',
-    'GHSA-h67p-54hq-rp68',
+    'js-yaml 4.2.0',
     'packed consumer audit',
     'fail-closed JSON policy'
   ]) {
@@ -450,13 +448,25 @@ function main() {
     }
   }
 
+  const consumerRiskClaims = {
+    'README.md': 'Packed or published consumers remain vulnerable to that advisory',
+    'SECURITY.md': 'Packed or published consumers remain vulnerable to that advisory',
+    'CHANGES.md': 'packed or published consumers remain vulnerable to that'
+  };
+  for (const [file, phrase] of Object.entries(consumerRiskClaims)) {
+    if (!read(file).replace(/\s+/g, ' ').includes(phrase)) {
+      failures.push(`${file} must include ${phrase}`);
+    }
+  }
+
   const compatibilityTest = read('tests/twilio-cli-host-compatibility.test.js');
   for (const phrase of [
     "pkg.engines.node, '>=20.0.0'",
     "pkg.dependencies['@twilio/cli-core'], '^8.3.4'",
     "lock.packages['node_modules/@twilio/cli-core']",
-    "node_modules/@oclif/core/node_modules/js-yaml",
-    'pkg.overrides, undefined',
+    "'js-yaml': '4.2.0'",
+    "lock.packages['node_modules/js-yaml'].version, '4.2.0'",
+    "require('../src/js-yaml-compat')",
     "lockedCore.version.split('.')[0]",
     'process.versions.node',
     'Twilio CLI host compatibility contract passed.'
@@ -618,8 +628,34 @@ function main() {
   }
 
   const transitiveAdvisoryPlan = read(TRANSITIVE_ADVISORY_PLAN);
-  if (!transitiveAdvisoryPlan.includes('Superseded by the 2026-06-19 deep review')) {
-    failures.push('transitive advisory plan must identify the later consumer-install correction');
+  const transitiveAdvisoryStatus = [...transitiveAdvisoryPlan.matchAll(/^status:\s*(.+?)\s*$/gmi)].map(match => match[1]);
+  const transitiveAdvisoryWork = markdownSection(transitiveAdvisoryPlan, 'Work Completed');
+  const transitiveAdvisoryVerification = markdownSection(transitiveAdvisoryPlan, 'Verification Completed');
+  if (transitiveAdvisoryStatus.length !== 1 || transitiveAdvisoryStatus[0] !== 'completed' || !transitiveAdvisoryWork) {
+    failures.push('transitive advisory plan must record one completed status and completed work');
+  }
+  if (!transitiveAdvisoryVerification || /\b(?:pending|todo|tbd|not run)\b/i.test(transitiveAdvisoryVerification)) {
+    failures.push('transitive advisory plan must record finished verification without pending markers');
+  }
+  for (const evidence of [
+    'form-data 4.0.6',
+    'undici 6.27.0',
+    'js-yaml 4.2.0',
+    'npm ci --ignore-scripts',
+    'npm audit --audit-level=low',
+    'node scripts/check-audit.js',
+    'zero known vulnerabilities',
+    'npm test',
+    'make check',
+    'external working directory',
+    'npm pack --dry-run',
+    'hostile mutations',
+    'git diff --check',
+    'secret and generated-artifact audits'
+  ]) {
+    if (!transitiveAdvisoryPlan.includes(evidence)) {
+      failures.push(`transitive advisory plan must preserve verification evidence: ${evidence}`);
+    }
   }
 
   const deepReviewPlan = read(DEEP_REVIEW_PLAN);

@@ -113,11 +113,16 @@ Pinned, credential-free hosted validation runs Node 20, 22, and 24 on Linux and
 Node 24 on Windows. It installs the reviewed lockfile with lifecycle scripts
 disabled, runs the complete test suite, audits the repository graph, validates
 package contents, and performs a packed consumer audit. The graph resolves
-`form-data 4.0.6` and `undici 6.27.0`. Twilio CLI Core's compatible oclif 1.x
-line still installs `js-yaml 3.14.2`, which is affected by
-`GHSA-h67p-54hq-rp68`; the fail-closed JSON policy accepts only that exact
-moderate upstream chain and rejects every new package, path, advisory, or
-severity.
+`form-data 4.0.6`, `undici 6.27.0`, and `js-yaml 4.2.0`. A narrow launcher
+preload maps the removed `safeLoad` and `safeDump` aliases to js-yaml 4's
+safe-by-default APIs before the compatible oclif 1.x host starts. The
+fail-closed JSON policy requires zero known vulnerabilities in the repository
+graph. Because npm does not apply dependency-package overrides when a consumer
+installs the plugin, the packed-consumer policy separately permits only the
+exact moderate js-yaml chain inherited from Twilio CLI Core 8.3.4. Packed or
+published consumers remain vulnerable to that advisory until the Twilio/oclif
+host line stops resolving js-yaml 3.x; do not describe downstream installs as
+fully patched or zero-vulnerability.
 
 - `make check`
 - `make lint`
