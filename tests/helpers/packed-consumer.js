@@ -8,10 +8,15 @@ const { spawnSync } = require('child_process');
 const ROOT = path.resolve(__dirname, '../..');
 const NPM = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
+function npmSpawnOptions(platform = process.platform) {
+  return { shell: platform === 'win32' };
+}
+
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, {
     encoding: 'utf8',
     maxBuffer: 30 * 1024 * 1024,
+    ...npmSpawnOptions(),
     ...options
   });
 
@@ -78,4 +83,4 @@ function installConsumer(tarball, extraPackages = []) {
   };
 }
 
-module.exports = { NPM, ROOT, installConsumer, packRepository, requireSuccess, run };
+module.exports = { NPM, ROOT, installConsumer, npmSpawnOptions, packRepository, requireSuccess, run };

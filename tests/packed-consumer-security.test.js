@@ -7,9 +7,13 @@ const path = require('path');
 const {
   NPM,
   installConsumer,
+  npmSpawnOptions,
   packRepository,
   run
 } = require('./helpers/packed-consumer');
+
+assert.deepStrictEqual(npmSpawnOptions('win32'), { shell: true });
+assert.deepStrictEqual(npmSpawnOptions('linux'), { shell: false });
 
 const packed = packRepository();
 const consumer = installConsumer(packed.path);
