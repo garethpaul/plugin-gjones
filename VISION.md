@@ -11,9 +11,10 @@ The goal is to keep the scaffold understandable while clarifying whether it is
 an example plugin or a maintained user-facing CLI extension.
 
 Current baseline: `npm run check`, `npm run lint`, `npm run build`, and
-`make check` verify the credential-free command, package metadata, CI
+`npm test` verify the credential-free command, package metadata, CI
 guardrails, docs, and static baseline without requiring Twilio credentials or a
 live account.
+Make fails closed and is not a validation entrypoint.
 `npm run test:command` keeps the documented scaffold output aligned with the
 command implementation by executing `run()` with a mocked oclif base class.
 Node 24 is the default local toolchain. GitHub Actions runs Node 20, 22, and 24
@@ -42,8 +43,7 @@ Priority:
 - Keep `bin/run` as the executable launcher for Unix installs
 - Keep the Windows launcher wrapper delegated to the adjacent Node launcher
 - Keep packaged launcher files included for npm publishes
-- Keep `make lint`, `make build`, `npm run lint`, and `npm run build` available
-  as stable static gate aliases
+- Keep `npm run lint` and `npm run build` available as stable static gate aliases
 - Keep package oclif metadata aligned with the command topic and launcher bin
 - Keep Node 24 as the `.nvmrc` default while engines and CI support Node 20+
 - Keep `@oclif/core` compatible with Twilio CLI Core 8.3.4 and keep the
@@ -61,7 +61,7 @@ Contribution rules:
 - One PR = one focused command, package, test, or documentation change.
 - Do not add account-affecting behavior without explicit docs and tests.
 - Keep examples free of credentials.
-- Keep `npm run check`, `npm run lint`, `npm run build`, and `make check`
+- Keep `npm run check`, `npm run lint`, `npm run build`, and `npm test`
   passing for command and package metadata changes.
 - Regenerate command docs only when command metadata changes.
 

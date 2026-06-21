@@ -48,6 +48,9 @@ Pinned, credential-free, read-only hosted Linux and Windows validation uses the
 reviewed lockfile, disables lifecycle scripts during installation, runs static,
 command-output, local Oclif, packed-consumer, and unsafe-YAML tests, audits the
 full development graph, and validates package contents without credentials.
+Package scripts invoke the repository-owned Node verifier directly. Make is not
+a trusted validation entrypoint and fails during parsing before recipes, shell
+functions, `PATH`, or caller-supplied makefiles can claim validation.
 
 The packed plugin owns no runtime dependencies, overrides, nested
 `node_modules`, launcher, YAML preload, or process-global monkeypatch. Oclif and
@@ -64,8 +67,8 @@ restored.
 
 Dependency updates should come from trusted package managers and should keep lockfiles in sync when lockfiles exist. Do not commit credentials, private keys, tokens, generated secrets, or machine-local configuration. If a vulnerability depends on a compromised package, typosquatting risk, insecure transitive dependency, or unsafe build step, include the package name, affected version, and the path through which it is used.
 
-Run `npm run check`, `npm run lint`, `npm run build`, `make lint`,
-`make build`, and `make check` before changing command behavior, package
+Run `npm run check`, `npm run lint`, `npm run build`, and `npm test` before
+changing command behavior, package
 scripts, CI, or credential-adjacent Twilio CLI behavior.
 Node 24 is the default local toolchain in `.nvmrc`; the supported runtime matrix
 is Node 20, 22, 24, and 25. Keep `package.json` engines, `package-lock.json`, and

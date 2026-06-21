@@ -6,7 +6,7 @@
 
 ## Project structure
 
-- `Makefile` - repository verification targets
+- `Makefile` - fail-closed redirect away from untrusted Make validation
 - `scripts` - baseline checks and helper scripts
 - `docs` - plans, notes, and generated README assets
 - `src` - primary source code
@@ -16,15 +16,16 @@
 ## Development commands
 
 - Install dependencies: `npm install`
-- Full baseline: `make check`
-- Combined verification: `make verify`
-- Lint/static checks: `make lint`
-- Tests: `make test`
-- Build: `make build`
+- Full baseline: `npm test`
+- Static checks: `npm run check`
+- Lint/static alias: `npm run lint`
+- Build/static alias: `npm run build`
+- Combined verification: `npm run verify`
 - package script `build`: `npm run build`
 - package script `lint`: `npm run lint`
 - package script `test`: `npm test`
 - package script `check`: `npm run check`
+- Make fails closed and is not a validation entrypoint.
 - If a command above skips because a platform toolchain is missing, verify on a machine with that SDK before claiming platform behavior is tested.
 
 ## Coding conventions
@@ -35,7 +36,7 @@
 ## Testing guidance
 
 - Test-related files detected: `docs/plans/2026-06-09-plugin-gjones-command-execution-test.md`, `tests/`, `tests/command-output.test.js`
-- Start with the narrowest relevant test or Make target, then run `make check` before handing off if the change is not documentation-only.
+- Start with the narrowest relevant test or package script, then run `npm test` before handing off if the change is not documentation-only.
 - Keep README verification notes in sync when commands, fixtures, or supported toolchains change.
 
 ## PR / change guidance
@@ -58,6 +59,6 @@
 
 1. Inspect the README, Makefile, manifests, and the files directly related to the request.
 2. Make the smallest source or docs change that satisfies the task; avoid generated, vendored, or local-environment files unless required.
-3. Run the narrowest useful validation first, then `make check` or the documented package/platform gate when available.
+3. Run the narrowest useful validation first, then `npm test` or the documented package/platform gate when available.
 4. If a required SDK, service credential, or external runtime is unavailable, record the skipped command and why.
 5. Summarize changed files, commands run, and remaining risks or follow-up validation.
