@@ -52,7 +52,7 @@ const REQUIRED = [
 ];
 const PARENT_CONTROLLED_ENTRIES = {
   '.gitattributes': { mode: '100644', blob: '391f0a4e4b04a8b63e39431a8444e58f84214805' },
-  '.github/workflows/check.yml': { mode: '100644', blob: 'a38665cd7aff23f1024aebad05ac3c049501cb17' },
+  '.github/workflows/check.yml': { mode: '100644', blob: 'cddf0b22b291528c6a020db9f05017b626c81545' },
   'bin/run': { mode: '100755', blob: 'fb2c4e1e1e05ef9c9a1decc90e85d64d074dafad' },
   'bin/run.cmd': { mode: '100644', blob: '968fc30758e686d7c4a569f87580ccd310d0b152' }
 };
