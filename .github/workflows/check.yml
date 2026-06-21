@@ -56,7 +56,7 @@ jobs:
         run: node scripts/check-audit.js
 
       - name: Run checks
-        run: npm test
+        run: node scripts/verify-repository.js test
 
       - name: Validate package contents
         run: npm pack --dry-run

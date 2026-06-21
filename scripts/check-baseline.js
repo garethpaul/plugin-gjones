@@ -167,6 +167,14 @@ function main() {
   })) {
     if (pkg.scripts[name] !== command) failures.push(`package.json must expose ${name}`);
   }
+  for (const scriptName of ['build', 'check', 'lint', 'test', 'verify']) {
+    for (const lifecyclePrefix of ['pre', 'post']) {
+      const lifecycleScript = `${lifecyclePrefix}${scriptName}`;
+      if (pkg.scripts[lifecycleScript]) {
+        failures.push(`package.json must not define protected npm lifecycle hook ${lifecycleScript}`);
+      }
+    }
+  }
 
   const instructionSurfaces = ['AGENTS.md', 'README.md', 'SECURITY.md', 'VISION.md'];
   const staleMakeCommand = /\bmake (?:check|verify|lint|test|build)\b/;
@@ -230,13 +238,16 @@ function main() {
     'persist-credentials: false',
     'run: npm ci --ignore-scripts',
     'run: node scripts/check-audit.js',
-    'run: npm test',
+    'run: node scripts/verify-repository.js test',
     'run: npm run audit:consumer',
     'run: npm run verify:twilio-host',
     'name: check',
     'needs: [matrix, consumer]'
   ]) {
     if (!workflow.includes(phrase)) failures.push(`workflow must include ${phrase}`);
+  }
+  if (workflow.includes('run: npm test')) {
+    failures.push('workflow must invoke the repository verifier directly without npm lifecycle hooks');
   }
   for (const os of ['ubuntu-24.04', 'windows-2025']) {
     for (const node of [20, 22, 24, 25]) {

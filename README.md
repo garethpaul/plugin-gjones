@@ -145,8 +145,11 @@ attribute host advisories to `@garethpaul/plugin-gjones`.
 - `npm audit --audit-level=low`
 - `npm pack --dry-run`
 
-Package scripts and hosted workflows invoke the repository-owned Node verifier
-directly. Make is explicitly not a trusted validation entrypoint: every Make
+Package scripts invoke the repository-owned Node verifier directly, but remain
+convenience aliases for an already reviewed tree. Hosted workflows invoke the
+verifier without npm so `pretest` and `posttest` lifecycle hooks cannot run
+before or after validation. The direct Node verifier is the authoritative hosted
+entrypoint. Make is explicitly not a trusted validation entrypoint: every Make
 invocation fails during parsing before recipes, shell functions, `PATH`, or
 caller-supplied makefiles can claim validation.
 

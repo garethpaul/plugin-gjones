@@ -48,9 +48,11 @@ Pinned, credential-free, read-only hosted Linux and Windows validation uses the
 reviewed lockfile, disables lifecycle scripts during installation, runs static,
 command-output, local Oclif, packed-consumer, and unsafe-YAML tests, audits the
 full development graph, and validates package contents without credentials.
-Package scripts invoke the repository-owned Node verifier directly. Make is not
-a trusted validation entrypoint and fails during parsing before recipes, shell
-functions, `PATH`, or caller-supplied makefiles can claim validation.
+Hosted checks invoke the repository-owned Node verifier directly without npm
+lifecycle hooks. Package aliases are convenience commands for an already
+reviewed tree. Make is not a trusted validation entrypoint and fails during
+parsing before recipes, shell functions, `PATH`, or caller-supplied makefiles
+can claim validation.
 
 The packed plugin owns no runtime dependencies, overrides, nested
 `node_modules`, launcher, YAML preload, or process-global monkeypatch. Oclif and

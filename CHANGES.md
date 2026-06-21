@@ -6,6 +6,9 @@
   call the repository-owned Node verifier directly, while Make fails closed
   before shell execution so `PATH`, `.SHELLFLAGS`, fake shells, and
   caller-supplied makefiles cannot claim validation.
+- Made hosted validation invoke the Node verifier without npm and reject
+  protected pre/post lifecycle hooks so they cannot replace the verifier before
+  the required gate runs.
 - Removed every plugin-owned Oclif, Twilio CLI Core, launcher, override, and
   preload path from the packed artifact; compatible host APIs are optional peer
   contracts instead of runtime dependencies.

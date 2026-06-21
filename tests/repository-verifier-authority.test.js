@@ -119,6 +119,25 @@ function writeFakeNode(name) {
   return { fakeDirectory, fakeLog };
 }
 
+function copyRepository(name) {
+  const copyRoot = path.join(externalCwd, name);
+  fs.cpSync(root, copyRoot, {
+    recursive: true,
+    filter(source) {
+      return !['.git', '.evidence', 'node_modules'].includes(path.basename(source));
+    }
+  });
+  assert.strictEqual(run('git', ['init', '-q', copyRoot]).status, 0);
+  assert.strictEqual(run('git', ['-C', copyRoot, 'add', '-A']).status, 0);
+  assert.strictEqual(run('git', [
+    '-C', copyRoot,
+    '-c', 'user.name=Repository Authority Test',
+    '-c', 'user.email=authority-test@example.invalid',
+    'commit', '-qm', 'fixture baseline'
+  ]).status, 0);
+  return copyRoot;
+}
+
 try {
   const fakeNode = writeFakeNode('fake-node');
   expectBaselineRan(
@@ -132,6 +151,29 @@ try {
       }
     }),
     [fakeNode.fakeLog]
+  );
+
+  for (const lifecycleHook of ['prebuild', 'postbuild', 'precheck', 'postcheck', 'prelint', 'postlint', 'pretest', 'posttest', 'preverify', 'postverify']) {
+    const lifecycleRoot = copyRepository(`broken-${lifecycleHook}`);
+    const lifecyclePackagePath = path.join(lifecycleRoot, 'package.json');
+    const lifecyclePackage = JSON.parse(fs.readFileSync(lifecyclePackagePath, 'utf8'));
+    lifecyclePackage.scripts[lifecycleHook] = 'node -e "process.exit(0)"';
+    fs.writeFileSync(lifecyclePackagePath, `${JSON.stringify(lifecyclePackage, null, 2)}\n`);
+
+    expectVerifierRejected(
+      `${lifecycleHook} lifecycle hook`,
+      run(process.execPath, [path.join(lifecycleRoot, 'scripts', 'verify-repository.js'), 'lint'])
+    );
+  }
+
+  const npmWorkflowRoot = copyRepository('broken-npm-workflow');
+  const workflowPath = path.join(npmWorkflowRoot, '.github', 'workflows', 'check.yml');
+  const workflow = fs.readFileSync(workflowPath, 'utf8')
+    .replace('run: node scripts/verify-repository.js test', 'run: npm test');
+  fs.writeFileSync(workflowPath, workflow);
+  expectVerifierRejected(
+    'hosted workflow npm lifecycle invocation',
+    run(process.execPath, [path.join(npmWorkflowRoot, 'scripts', 'verify-repository.js'), 'lint'])
   );
 
   const makeAvailable = run('make', ['--version']).status === 0;
@@ -228,15 +270,7 @@ try {
       );
     }
 
-    const brokenRoot = path.join(externalCwd, 'broken-repository');
-    fs.cpSync(root, brokenRoot, {
-      recursive: true,
-      filter(source) {
-        return !['.git', '.evidence', 'node_modules'].includes(path.basename(source));
-      }
-    });
-    assert.strictEqual(run('git', ['init', '-q', brokenRoot]).status, 0);
-    assert.strictEqual(run('git', ['-C', brokenRoot, 'add', '-A']).status, 0);
+    const brokenRoot = copyRepository('broken-repository');
     const brokenPackagePath = path.join(brokenRoot, 'package.json');
     const brokenPackage = JSON.parse(fs.readFileSync(brokenPackagePath, 'utf8'));
     brokenPackage.description = 'hostile replacement';
