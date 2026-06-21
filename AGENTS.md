@@ -16,8 +16,12 @@
 ## Development commands
 
 - Install dependencies: `npm ci --ignore-scripts`
-- Authoritative full baseline: `node scripts/verify-repository.js test`
+- Canonical repository-local test: `node scripts/verify-repository.js test`
 - Convenience full baseline on a reviewed tree: `npm test`
+- Package graph audit: `node scripts/check-audit.js`
+- Package contents: `npm pack --dry-run`
+- Packed consumer audit: `npm run audit:consumer`
+- Real Twilio host compatibility: `npm run verify:twilio-host`
 - Static checks: `npm run check`
 - Lint/static alias: `npm run lint`
 - Build/static alias: `npm run build`
@@ -58,7 +62,11 @@
 - Keep the package description aligned with the credential-free Twilio CLI plugin scaffold purpose.
 - Keep installs lockfile-driven and lifecycle-script-disabled with
   `npm ci --ignore-scripts`; package scripts are convenience aliases, while the
-  direct repository verifier is the authoritative validation entrypoint.
+  direct repository verifier is the canonical repository-local test entrypoint.
+- The base-owned trusted-tree check validates only protected Git tree paths; it
+  does not attest package behavior, consumer safety, or publication readiness.
+- No contributor command publishes the package. Passing repository, package,
+  consumer, or host checks does not authorize an npm release.
 
 ## Agent workflow
 

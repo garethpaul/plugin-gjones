@@ -3,8 +3,9 @@
 ## 2026-06-21 contributor validation contract
 
 - Aligned contributor instructions with the lockfile-driven,
-  lifecycle-script-disabled install path, the direct authoritative verifier,
-  and the supported Node 20, 22, 24, and 25 hosted matrix.
+  lifecycle-script-disabled install path, direct repository/package/consumer
+  commands, the base-owned trusted-tree check's narrow scope, and the supported
+  Node 20, 22, 24, and 25 hosted matrix without implying publication authority.
 
 ## 2026-06-20 live-default replacement repair
 

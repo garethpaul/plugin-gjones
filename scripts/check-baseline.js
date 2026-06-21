@@ -188,8 +188,12 @@ function main() {
   const agents = read('AGENTS.md');
   for (const phrase of [
     'Install dependencies: `npm ci --ignore-scripts`',
-    'Authoritative full baseline: `node scripts/verify-repository.js test`',
+    'Canonical repository-local test: `node scripts/verify-repository.js test`',
     'Convenience full baseline on a reviewed tree: `npm test`',
+    'Package graph audit: `node scripts/check-audit.js`',
+    'Package contents: `npm pack --dry-run`',
+    'Packed consumer audit: `npm run audit:consumer`',
+    'Real Twilio host compatibility: `npm run verify:twilio-host`',
     'Static checks: `npm run check`',
     'Lint/static alias: `npm run lint`',
     'Build/static alias: `npm run build`',
@@ -203,9 +207,33 @@ function main() {
   for (const phrase of [
     'Use Node 20 or newer for package scripts',
     'hosted validation covers Node 20, 22, 24, and 25',
-    'node scripts/verify-repository.js test'
+    'node scripts/verify-repository.js test',
+    'The base-owned trusted-tree check validates only protected Git tree paths',
+    'does not attest package behavior, consumer safety, or publication readiness',
+    'No contributor command publishes the package'
   ]) {
     if (!agents.includes(phrase)) failures.push(`AGENTS.md validation contract missing ${phrase}`);
+  }
+  if (/Authoritative full baseline|authoritative validation entrypoint/.test(agents)) {
+    failures.push('AGENTS.md must not present candidate-controlled repository checks as independent authority');
+  }
+
+  const contributorValidationPlan = read('docs/plans/2026-06-21-contributor-validation-contract.md');
+  for (const phrase of [
+    '`node scripts/check-audit.js`',
+    '`node scripts/verify-repository.js test`',
+    '`npm pack --dry-run`',
+    '`npm run audit:consumer`',
+    '`npm run verify:twilio-host`',
+    'base-owned trusted-tree check',
+    'does not authorize publication'
+  ]) {
+    if (!contributorValidationPlan.includes(phrase)) {
+      failures.push(`contributor validation plan missing ${phrase}`);
+    }
+  }
+  if (/authoritative full baseline|direct authoritative verifier/i.test(contributorValidationPlan)) {
+    failures.push('contributor validation plan must not overclaim independent verification authority');
   }
 
   const command = read('src/commands/gjones/mycommand.js');
