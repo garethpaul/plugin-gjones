@@ -18,7 +18,7 @@ This README is based on the checked-in source, manifests, scripts, and repositor
 
 - `.gitignore` - generated output, dependency, log, and environment ignores
 - `CHANGES.md` - baseline change log
-- `Makefile` - repository-level verification wrapper
+- `Makefile` - fail-closed redirect away from untrusted Make validation
 - `README.md` - project overview and local usage notes
 - `package.json` and `package-lock.json` - reviewed JavaScript dependency and script metadata
 - `bin` - source or example code
@@ -62,14 +62,14 @@ git clone https://github.com/garethpaul/plugin-gjones.git
 cd plugin-gjones
 nvm use
 npm ci --ignore-scripts
-make check
+npm run check
 ```
 
 The setup commands above are derived from repository files. Legacy mobile, Python, or JavaScript samples may require older SDKs or package versions than a modern workstation uses by default.
 
 ## Running or Using the Project
 
-- Run `make check`, `make lint`, or `make build` before changing command
+- Run `npm run check`, `npm run lint`, or `npm run build` before changing command
   behavior or package metadata.
 - Use `./bin/run gjones:mycommand` after dependencies are installed to run the
   scaffold command. It prints `Hello World Test!`.
@@ -94,13 +94,15 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 Detected npm scripts:
 
-- `npm run build` - `npm run check`
+- `npm run build` - repository-owned baseline verification
 - `npm run postpack` - portable generated-manifest cleanup
 - `npm run prepack` - `oclif manifest && oclif readme`
-- `npm run check` - `node scripts/check-baseline.js`
-- `npm run lint` - `npm run check`
+- `npm run check` - repository-owned baseline verification
+- `npm run lint` - repository-owned baseline verification
 - `npm run test` - static, host-compatibility, command-output, and installed
   oclif smoke tests
+- `npm run test:authority` - reject Make/PATH attempts to claim validation
+- `npm run verify` - repository-owned lint, test, and build verification
 - `npm run audit:consumer` - pack, install, and audit the consumer artifact
 - `npm run test:packed` - prove a fresh packed consumer owns no vulnerable path
 - `npm run test:yaml` - prove plugin modules preserve host safe YAML APIs
@@ -127,13 +129,11 @@ they are neither installed by the plugin nor treated as plugin audit success.
 The real-host check verifies `Hello World Test!` and ensures npm does not
 attribute host advisories to `@garethpaul/plugin-gjones`.
 
-- `make check`
-- `make lint`
-- `make build`
 - `npm run check`
 - `npm run lint`
 - `npm run build`
 - `npm test`
+- `node scripts/verify-repository.js verify`
 - `node scripts/check-baseline.js`
 - `npm run test:command`
 - `npm run test:compatibility`
@@ -144,6 +144,14 @@ attribute host advisories to `@garethpaul/plugin-gjones`.
 - `npm run verify:twilio-host`
 - `npm audit --audit-level=low`
 - `npm pack --dry-run`
+
+Package scripts invoke the repository-owned Node verifier directly, but remain
+convenience aliases for an already reviewed tree. Hosted workflows invoke the
+verifier without npm so `pretest` and `posttest` lifecycle hooks cannot run
+before or after validation. The direct Node verifier is the authoritative hosted
+entrypoint. Make is explicitly not a trusted validation entrypoint: every Make
+invocation fails during parsing before recipes, shell functions, `PATH`, or
+caller-supplied makefiles can claim validation.
 
 `npm run test:command` remains a dependency-free command execution test. It evaluates
 `gjones:mycommand` with a mocked oclif `Command`, calls `run()`, and verifies the
@@ -179,8 +187,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
 
 ## Maintenance Notes
 
-- Run `npm run check`, `npm run lint`, `npm run build`, `make lint`,
-  `make build`, and `make check` before changing command code, package
+- Run `npm run check`, `npm run lint`, `npm run build`, and `npm test`
+  before changing command code, package
   scripts, CI, or Twilio credential handling.
 - Keep `.nvmrc`, `package.json` engines, the reviewed lockfile, and GitHub
   Actions aligned on the Node 24 toolchain baseline.

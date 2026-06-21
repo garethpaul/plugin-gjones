@@ -16,6 +16,7 @@ const REQUIRED = [
   '.github/workflows/check.yml',
   '.github/workflows/trusted-hosted-windows-path-policy.yml',
   '.nvmrc',
+  'AGENTS.md',
   'CHANGES.md',
   'Makefile',
   'README.md',
@@ -30,6 +31,7 @@ const REQUIRED = [
   'scripts/check-baseline.js',
   'scripts/check-consumer-audit.js',
   'scripts/check-real-twilio-host.js',
+  'scripts/verify-repository.js',
   'scripts/data/unicode-17-casefold-cf.json',
   'scripts/hosted-windows-path-policy.js',
   'scripts/unicode-casefold.js',
@@ -41,6 +43,7 @@ const REQUIRED = [
   'tests/hosted-windows-path-policy.test.js',
   'tests/oclif-command-smoke.test.js',
   'tests/packed-consumer-security.test.js',
+  'tests/repository-verifier-authority.test.js',
   'tests/trusted-hosted-windows-verifier.test.js',
   'tests/twilio-cli-host-compatibility.test.js',
   'tests/unicode-casefold-integrity.test.js',
@@ -49,7 +52,7 @@ const REQUIRED = [
 ];
 const PARENT_CONTROLLED_ENTRIES = {
   '.gitattributes': { mode: '100644', blob: '391f0a4e4b04a8b63e39431a8444e58f84214805' },
-  '.github/workflows/check.yml': { mode: '100644', blob: 'a38665cd7aff23f1024aebad05ac3c049501cb17' },
+  '.github/workflows/check.yml': { mode: '100644', blob: 'cddf0b22b291528c6a020db9f05017b626c81545' },
   'bin/run': { mode: '100755', blob: 'fb2c4e1e1e05ef9c9a1decc90e85d64d074dafad' },
   'bin/run.cmd': { mode: '100644', blob: '968fc30758e686d7c4a569f87580ccd310d0b152' }
 };
@@ -94,13 +97,15 @@ function main() {
     if (!fs.existsSync(`${ROOT}${path.sep}${file}`)) failures.push(`required file missing: ${file}`);
   }
 
-  for (const phrase of [
-    'ifneq ($(origin MAKEFILE_LIST),file)',
-    '$(error MAKEFILE_LIST must not be overridden)',
-    'override ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))'
-  ]) {
-    if (!read('Makefile').includes(phrase)) {
-      failures.push(`Makefile must protect the repository root with ${phrase}`);
+  const expectedMakefile = '.PHONY: build check lint test verify\n\n' +
+    '$(error Make is not a trusted validation entrypoint; run npm run check, npm run lint, npm test, or npm run build)\n';
+  const makefile = read('Makefile');
+  if (makefile !== expectedMakefile) {
+    failures.push('Makefile must remain an exact fail-closed sentinel with no shell execution or recipes');
+  }
+  for (const forbidden of ['$(shell', 'PLUGIN_GJONES_VERIFICATION_OK', '--make-bootstrap', 'TRUSTED_RESULT']) {
+    if (makefile.includes(forbidden)) {
+      failures.push(`Makefile must not include ${forbidden}`);
     }
   }
 
@@ -140,13 +145,16 @@ function main() {
     failures.push(`development graph must resolve only js-yaml 4.2.0, received ${yamlVersions.join(', ')}`);
   }
 
-  const expectedTest = 'npm run check && npm run test:unicode && npm run test:windows-paths && npm run test:trusted && npm run test:audit && npm run test:consumer && npm run test:packed && npm run test:yaml && npm run test:compatibility && npm run test:command && npm run test:oclif';
-  if (pkg.scripts.test !== expectedTest) failures.push('npm test must run every local security and behavior regression');
   for (const [name, command] of Object.entries({
-    check: 'node scripts/check-baseline.js',
+    build: 'node scripts/verify-repository.js build',
+    check: 'node scripts/verify-repository.js check',
+    lint: 'node scripts/verify-repository.js lint',
+    test: 'node scripts/verify-repository.js test',
+    verify: 'node scripts/verify-repository.js verify',
     'test:unicode': 'node tests/unicode-casefold-integrity.test.js',
     'test:windows-paths': 'node tests/hosted-windows-path-policy.test.js',
     'test:trusted': 'node tests/trusted-hosted-windows-verifier.test.js',
+    'test:authority': 'node tests/repository-verifier-authority.test.js',
     'test:audit': 'node tests/audit-policy.test.js',
     'test:consumer': 'node tests/consumer-audit.test.js',
     'test:packed': 'node tests/packed-consumer-security.test.js',
@@ -158,6 +166,33 @@ function main() {
     'verify:twilio-host': 'node scripts/check-real-twilio-host.js'
   })) {
     if (pkg.scripts[name] !== command) failures.push(`package.json must expose ${name}`);
+  }
+  for (const scriptName of ['build', 'check', 'lint', 'test', 'verify']) {
+    for (const lifecyclePrefix of ['pre', 'post']) {
+      const lifecycleScript = `${lifecyclePrefix}${scriptName}`;
+      if (pkg.scripts[lifecycleScript]) {
+        failures.push(`package.json must not define protected npm lifecycle hook ${lifecycleScript}`);
+      }
+    }
+  }
+
+  const instructionSurfaces = ['AGENTS.md', 'README.md', 'SECURITY.md', 'VISION.md'];
+  const staleMakeCommand = /\bmake (?:check|verify|lint|test|build)\b/;
+  for (const file of instructionSurfaces) {
+    const contents = read(file);
+    if (staleMakeCommand.test(contents)) {
+      failures.push(`${file} must not instruct readers to use Make validation targets`);
+    }
+  }
+  const agents = read('AGENTS.md');
+  for (const phrase of [
+    'Full baseline: `npm test`',
+    'Static checks: `npm run check`',
+    'Lint/static alias: `npm run lint`',
+    'Build/static alias: `npm run build`',
+    'Make fails closed and is not a validation entrypoint.'
+  ]) {
+    if (!agents.includes(phrase)) failures.push(`AGENTS.md must include ${phrase}`);
   }
 
   const command = read('src/commands/gjones/mycommand.js');
@@ -203,13 +238,16 @@ function main() {
     'persist-credentials: false',
     'run: npm ci --ignore-scripts',
     'run: node scripts/check-audit.js',
-    'run: npm test',
+    'run: node scripts/verify-repository.js test',
     'run: npm run audit:consumer',
     'run: npm run verify:twilio-host',
     'name: check',
     'needs: [matrix, consumer]'
   ]) {
     if (!workflow.includes(phrase)) failures.push(`workflow must include ${phrase}`);
+  }
+  if (workflow.includes('run: npm test')) {
+    failures.push('workflow must invoke the repository verifier directly without npm lifecycle hooks');
   }
   for (const os of ['ubuntu-24.04', 'windows-2025']) {
     for (const node of [20, 22, 24, 25]) {
