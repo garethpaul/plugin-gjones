@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-06-21 contributor validation contract
+
+- Aligned contributor instructions with the lockfile-driven,
+  lifecycle-script-disabled install path, the direct authoritative verifier,
+  and the supported Node 20, 22, 24, and 25 hosted matrix.
+
 ## 2026-06-20 live-default replacement repair
 
 - Moved repository validation authority out of Make entirely. Package scripts

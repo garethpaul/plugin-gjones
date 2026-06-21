@@ -15,8 +15,9 @@
 
 ## Development commands
 
-- Install dependencies: `npm install`
-- Full baseline: `npm test`
+- Install dependencies: `npm ci --ignore-scripts`
+- Authoritative full baseline: `node scripts/verify-repository.js test`
+- Convenience full baseline on a reviewed tree: `npm test`
 - Static checks: `npm run check`
 - Lint/static alias: `npm run lint`
 - Build/static alias: `npm run build`
@@ -31,7 +32,8 @@
 ## Coding conventions
 
 - Language mix noted in the README: JavaScript (1).
-- Use Node 24 or newer for package scripts; `.nvmrc` pins the hosted baseline.
+- Use Node 20 or newer for package scripts; `.nvmrc` selects Node 24 for local
+  maintenance, and hosted validation covers Node 20, 22, 24, and 25.
 
 ## Testing guidance
 
@@ -54,11 +56,16 @@
 - Keep the output constant aligned with the documented scaffold output.
 - Keep command description metadata covered by the command execution test.
 - Keep the package description aligned with the credential-free Twilio CLI plugin scaffold purpose.
+- Keep installs lockfile-driven and lifecycle-script-disabled with
+  `npm ci --ignore-scripts`; package scripts are convenience aliases, while the
+  direct repository verifier is the authoritative validation entrypoint.
 
 ## Agent workflow
 
 1. Inspect the README, Makefile, manifests, and the files directly related to the request.
 2. Make the smallest source or docs change that satisfies the task; avoid generated, vendored, or local-environment files unless required.
-3. Run the narrowest useful validation first, then `npm test` or the documented package/platform gate when available.
+3. Run the narrowest useful validation first, then
+   `node scripts/verify-repository.js test` or the documented package/platform
+   gate when available.
 4. If a required SDK, service credential, or external runtime is unavailable, record the skipped command and why.
 5. Summarize changed files, commands run, and remaining risks or follow-up validation.

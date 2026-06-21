@@ -25,6 +25,7 @@ const REQUIRED = [
   'bin/run',
   'bin/run.cmd',
   'docs/plans/2026-06-20-live-default-host-isolation.md',
+  'docs/plans/2026-06-21-contributor-validation-contract.md',
   'package-lock.json',
   'package.json',
   'scripts/check-audit.js',
@@ -186,13 +187,25 @@ function main() {
   }
   const agents = read('AGENTS.md');
   for (const phrase of [
-    'Full baseline: `npm test`',
+    'Install dependencies: `npm ci --ignore-scripts`',
+    'Authoritative full baseline: `node scripts/verify-repository.js test`',
+    'Convenience full baseline on a reviewed tree: `npm test`',
     'Static checks: `npm run check`',
     'Lint/static alias: `npm run lint`',
     'Build/static alias: `npm run build`',
     'Make fails closed and is not a validation entrypoint.'
   ]) {
     if (!agents.includes(phrase)) failures.push(`AGENTS.md must include ${phrase}`);
+  }
+  if (/Install dependencies: `npm install`/.test(agents)) {
+    failures.push('AGENTS.md must not recommend lifecycle-enabled unlocked installation');
+  }
+  for (const phrase of [
+    'Use Node 20 or newer for package scripts',
+    'hosted validation covers Node 20, 22, 24, and 25',
+    'node scripts/verify-repository.js test'
+  ]) {
+    if (!agents.includes(phrase)) failures.push(`AGENTS.md validation contract missing ${phrase}`);
   }
 
   const command = read('src/commands/gjones/mycommand.js');
