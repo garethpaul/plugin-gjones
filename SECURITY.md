@@ -72,6 +72,11 @@ Dependency updates should come from trusted package managers and should keep loc
 Run `npm run check`, `npm run lint`, `npm run build`, and `npm test` before
 changing command behavior, package
 scripts, CI, or credential-adjacent Twilio CLI behavior.
+The direct repository verifier rejects `NODE_OPTIONS`, `NODE_PATH`, and
+command-line require/import/loader preloads before repository child dispatch.
+This is fail-closed detection, not a sandbox or independent attestation,
+because Node executes a configured preload before the verifier entrypoint. The
+base-owned trusted-tree check remains the independent protected-path control.
 Node 24 is the default local toolchain in `.nvmrc`; the supported runtime matrix
 is Node 20, 22, 24, and 25. Keep `package.json` engines, `package-lock.json`, and
 GitHub Actions aligned. Keep both low-threshold audits at zero and do not

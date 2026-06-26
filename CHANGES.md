@@ -1,5 +1,66 @@
 # Changes
 
+## 2026-06-26 14:08:30 PDT - P1 - Reject Node verifier preloads
+
+### Summary
+
+Closed a false-green repository verification path where `NODE_OPTIONS` or a
+command-line Node preload could replace `child_process.spawnSync` before the
+canonical verifier loaded, causing every baseline and test dispatch to report
+success without executing.
+
+### Work completed
+
+- Rejected inherited `NODE_OPTIONS` and `NODE_PATH` configuration before
+  repository child dispatch.
+- Rejected command-line require, import, loader, and experimental-loader
+  preloads, including compact `-r` forms.
+- Removed Node injection variables from every verifier child environment.
+- Added causal authority regressions that install a preload replacing
+  `spawnSync` and prove both environment and command-line variants fail closed.
+- Froze the implementation, tests, evidence, and scoped trust language in the
+  static baseline.
+
+### Threads
+
+- None; the focused verifier authority work was completed directly.
+
+### Files changed
+
+- `scripts/verify-repository.js` — validate Node bootstrap state before child
+  dispatch and sanitize child environments.
+- `tests/repository-verifier-authority.test.js` — prove both preload vectors no
+  longer produce a false green.
+- `scripts/check-baseline.js` — preserve the bootstrap implementation, tests,
+  completed plan, and non-overclaiming documentation.
+- `README.md`, `SECURITY.md`, `VISION.md`, `AGENTS.md`, and
+  `docs/plans/2026-06-26-node-preload-boundary.md` — document the boundary and
+  its same-user process limitation.
+
+### Validation
+
+- Full repository, package, consumer, host-compatibility, Node matrix, Windows,
+  and diff checks — recorded in the completed plan.
+
+### Bugs / findings
+
+- Fixed P1 false-green verification through environment and command-line Node
+  preloads.
+- Command output, Twilio account behavior, package contents, dependency
+  ownership, host compatibility, and publication policy did not change.
+- The verifier guard acts before repository child dispatch, not before the
+  preload itself; it is not a sandbox or independent attestation.
+
+### Blockers
+
+- Codex review authentication is unavailable in this environment; attempt it
+  once after the pull request is open, then rely on local and hosted gates.
+
+### Next action
+
+- Merge only the exact hosted-green pull-request head, then continue repository
+  triage.
+
 ## 2026-06-21 contributor validation contract
 
 - Aligned contributor instructions with the lockfile-driven,

@@ -44,6 +44,9 @@ Priority:
 - Keep the Windows launcher wrapper delegated to the adjacent Node launcher
 - Keep packaged launcher files included for npm publishes
 - Keep `npm run lint` and `npm run build` available as stable static gate aliases
+- Keep the direct verifier fail-closed against inherited and command-line Node
+  preloads before repository child dispatch without presenting it as a sandbox
+  or independent attestation
 - Keep package oclif metadata aligned with the command topic and launcher bin
 - Keep Node 24 as the `.nvmrc` default while engines and CI support Node 20+
 - Keep `@oclif/core` compatible with Twilio CLI Core 8.3.4 and keep the

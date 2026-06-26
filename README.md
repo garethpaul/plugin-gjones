@@ -148,10 +148,16 @@ attribute host advisories to `@garethpaul/plugin-gjones`.
 Package scripts invoke the repository-owned Node verifier directly, but remain
 convenience aliases for an already reviewed tree. Hosted workflows invoke the
 verifier without npm so `pretest` and `posttest` lifecycle hooks cannot run
-before or after validation. The direct Node verifier is the authoritative hosted
-entrypoint. Make is explicitly not a trusted validation entrypoint: every Make
-invocation fails during parsing before recipes, shell functions, `PATH`, or
-caller-supplied makefiles can claim validation.
+before or after validation. The direct Node verifier is the canonical hosted
+behavioral entrypoint. Make is explicitly not a trusted validation entrypoint:
+every Make invocation fails during parsing before recipes, shell functions,
+`PATH`, or caller-supplied makefiles can claim validation.
+The verifier rejects inherited `NODE_OPTIONS`, `NODE_PATH`, and command-line
+require/import/loader preloads before repository child dispatch. This prevents
+a configured preload from replacing child-process execution and returning a
+false green, but it is not a sandbox or independent attestation: a Node preload
+itself executes before JavaScript entrypoint code. The base-owned trusted-tree
+check remains the independent merge boundary for protected paths.
 
 `npm run test:command` remains a dependency-free command execution test. It evaluates
 `gjones:mycommand` with a mocked oclif `Command`, calls `run()`, and verifies the

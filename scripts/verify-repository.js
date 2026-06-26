@@ -19,6 +19,28 @@ const TESTS = [
   'tests/command-output.test.js',
   'tests/oclif-command-smoke.test.js'
 ];
+const NODE_PRELOAD_OPTIONS = [
+  '--experimental-loader',
+  '--import',
+  '--loader',
+  '--require'
+];
+
+function assertSafeNodeBootstrap(execArguments = process.execArgv, environment = process.env) {
+  if (environment.NODE_OPTIONS || environment.NODE_PATH) {
+    throw new Error('Node preload options are not supported for repository verification');
+  }
+
+  for (const argument of execArguments) {
+    const isCompactRequire = argument.startsWith('-r') && !argument.startsWith('--');
+    const isPreloadOption = NODE_PRELOAD_OPTIONS.some(
+      option => argument === option || argument.startsWith(`${option}=`)
+    );
+    if (isCompactRequire || isPreloadOption) {
+      throw new Error('Node preload options are not supported for repository verification');
+    }
+  }
+}
 
 function verificationFiles(mode) {
   switch (mode) {
@@ -37,7 +59,15 @@ function verificationFiles(mode) {
 
 function childEnvironment() {
   const environment = { ...process.env };
-  for (const name of ['NPM', 'ROOT', 'MAKEFLAGS', 'MFLAGS', 'MAKEFILES']) delete environment[name];
+  for (const name of [
+    'NPM',
+    'ROOT',
+    'MAKEFLAGS',
+    'MFLAGS',
+    'MAKEFILES',
+    'NODE_OPTIONS',
+    'NODE_PATH'
+  ]) delete environment[name];
   return environment;
 }
 
@@ -56,6 +86,7 @@ function run(relativePath) {
 }
 
 function main() {
+  assertSafeNodeBootstrap();
   const mode = process.argv[2] || 'verify';
   if (process.argv.length > 3) {
     throw new Error(`unexpected repository verifier arguments: ${process.argv.slice(3).join(' ')}`);
