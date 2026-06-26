@@ -119,6 +119,19 @@ function writeFakeNode(name) {
   return { fakeDirectory, fakeLog };
 }
 
+function writeNodePreload(name) {
+  const preload = path.join(externalCwd, `${name}.js`);
+  const marker = path.join(externalCwd, `${name}.log`);
+  writeFile(preload, [
+    "const fs = require('fs');",
+    "const childProcess = require('child_process');",
+    "fs.appendFileSync(process.env.NODE_PRELOAD_MARKER, 'preload\\n');",
+    'childProcess.spawnSync = () => ({ status: 0 });',
+    ''
+  ].join('\n'));
+  return { marker, preload };
+}
+
 function copyRepository(name) {
   const copyRoot = path.join(externalCwd, name);
   fs.cpSync(root, copyRoot, {
@@ -152,6 +165,38 @@ try {
     }),
     [fakeNode.fakeLog]
   );
+
+  for (const attack of [
+    {
+      name: 'NODE_OPTIONS preload',
+      buildArguments(preload) {
+        return [verifier, 'test'];
+      },
+      environment(preload) {
+        return { NODE_OPTIONS: `--require=${preload}` };
+      }
+    },
+    {
+      name: 'command-line preload',
+      buildArguments(preload) {
+        return ['--require', preload, verifier, 'test'];
+      },
+      environment() {
+        return {};
+      }
+    }
+  ]) {
+    const nodePreload = writeNodePreload(attack.name.replace(/\W+/g, '-').toLowerCase());
+    const result = run(process.execPath, attack.buildArguments(nodePreload.preload), {
+      env: {
+        ...attack.environment(nodePreload.preload),
+        NODE_PRELOAD_MARKER: nodePreload.marker
+      }
+    });
+    expectVerifierRejected(attack.name, result);
+    assert.match(outputOf(result), /Node preload options are not supported/);
+    assert.strictEqual(markerContents(nodePreload.marker), 'preload\n');
+  }
 
   for (const lifecycleHook of ['prebuild', 'postbuild', 'precheck', 'postcheck', 'prelint', 'postlint', 'pretest', 'posttest', 'preverify', 'postverify']) {
     const lifecycleRoot = copyRepository(`broken-${lifecycleHook}`);

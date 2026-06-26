@@ -65,6 +65,10 @@
   direct repository verifier is the canonical repository-local test entrypoint.
 - The base-owned trusted-tree check validates only protected Git tree paths; it
   does not attest package behavior, consumer safety, or publication readiness.
+- The direct verifier rejects `NODE_OPTIONS`, `NODE_PATH`, and command-line
+  require/import/loader preloads before repository child dispatch. This is
+  fail-closed detection, not a sandbox or independent attestation, because a
+  Node preload executes before JavaScript entrypoint code.
 - No contributor command publishes the package. Passing repository, package,
   consumer, or host checks does not authorize an npm release.
 

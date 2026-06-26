@@ -26,6 +26,7 @@ const REQUIRED = [
   'bin/run.cmd',
   'docs/plans/2026-06-20-live-default-host-isolation.md',
   'docs/plans/2026-06-21-contributor-validation-contract.md',
+  'docs/plans/2026-06-26-node-preload-boundary.md',
   'package-lock.json',
   'package.json',
   'scripts/check-audit.js',
@@ -218,6 +219,51 @@ function main() {
     failures.push('AGENTS.md must not present candidate-controlled repository checks as independent authority');
   }
 
+  const repositoryVerifier = read('scripts/verify-repository.js');
+  for (const phrase of [
+    'function assertSafeNodeBootstrap',
+    'environment.NODE_OPTIONS || environment.NODE_PATH',
+    "argument.startsWith('-r')",
+    "'--experimental-loader'",
+    "'--import'",
+    "'--loader'",
+    "'--require'",
+    "'NODE_OPTIONS'",
+    "'NODE_PATH'",
+    'assertSafeNodeBootstrap();'
+  ]) {
+    if (!repositoryVerifier.includes(phrase)) {
+      failures.push(`repository verifier bootstrap contract missing ${phrase}`);
+    }
+  }
+
+  const verifierAuthorityTest = read('tests/repository-verifier-authority.test.js');
+  for (const phrase of [
+    'NODE_OPTIONS preload',
+    'command-line preload',
+    'Node preload options are not supported',
+    "childProcess.spawnSync = () => ({ status: 0 })"
+  ]) {
+    if (!verifierAuthorityTest.includes(phrase)) {
+      failures.push(`repository verifier preload regression missing ${phrase}`);
+    }
+  }
+
+  const nodePreloadPlan = read('docs/plans/2026-06-26-node-preload-boundary.md');
+  for (const phrase of [
+    'status: completed',
+    '`NODE_OPTIONS`',
+    'command-line preload flags',
+    'before repository child dispatch',
+    'not a sandbox or independent attestation',
+    'Node 20, 22, and 24',
+    'base-owned trusted-tree check'
+  ]) {
+    if (!nodePreloadPlan.includes(phrase)) {
+      failures.push(`Node preload boundary plan missing ${phrase}`);
+    }
+  }
+
   const contributorValidationPlan = read('docs/plans/2026-06-21-contributor-validation-contract.md');
   for (const phrase of [
     '`node scripts/check-audit.js`',
@@ -333,7 +379,10 @@ function main() {
     'zero',
     'js-yaml 3.14.2',
     'Twilio CLI 6.2.4',
-    'Hello World Test!'
+    'Hello World Test!',
+    'NODE_OPTIONS',
+    'before repository child dispatch',
+    'not a sandbox or independent attestation'
   ]) {
     if (!docs.includes(phrase)) failures.push(`documentation must distinguish the repair using ${phrase}`);
   }
