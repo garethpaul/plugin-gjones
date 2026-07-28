@@ -71,7 +71,7 @@
   },
   "devDependencies": {
     "@oclif/core": "^4.11.7",
-    "js-yaml": "4.2.0",
+    "js-yaml": "4.3.0",
     "oclif": "^4.23.14"
   }
 }
